@@ -43,14 +43,14 @@ escalas_layout2 <- function() {
 ## OBJETIVO GENERAL
 ```{r layout='Content with Caption', results='asis'}
 cat("Conocer los hábitos y la percepción de adolescentes, adultos jóvenes, intermedios y mayores de Lima y Callao respecto a la lectura y la accesibilidad de materiales de lectura.\n\n")
-knitr::include_graphics("man/figures/Bullseye.png")
+knitr::include_graphics(system.file("extdata/Bullseye.png", package = "pulsoreport"))
 ```
 
 ## ESCALA USADA EN LOS CUESTIONARIOS
 ```{r layout = 'Comparison', results='asis'}
 escalas_layout1()
 cat("Los cuestionarios estuvieron compuestos por una escala de cuatro grados. Haciendo uso de ella los encuestados señalaron que tan de acuerdo o en desacuerdo se encontraban con cada afirmación. La escala fue la siguiente:\n\n")
-knitr::include_graphics("man/figures/Escala.png")
+knitr::include_graphics(system.file("man/figures/Escala.png", package = "pulsoreport"))
 escalas_layout2()
 ```
 
@@ -58,7 +58,7 @@ escalas_layout2()
 ```{r layout = 'Comparison', results='asis'}
 escalas_layout1()
 cat("Con el fin de hacer la lectura de datos de forma más amigable se planteó la suma de los dos valores superiores “de acuerdo” y “totalmente de acuerdo”, comúnmente llamada top two box. Esta suma permite comparar de manera más rápida y eficiente los datos entre categorías o con mediciones de otros años.\n\n")
-knitr::include_graphics("man/figures/T2B.png")
+knitr::include_graphics(system.file("man/figures/T2B.png", package = "pulsoreport"))
 escalas_layout2()
 ```
 
