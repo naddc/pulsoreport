@@ -1,3 +1,8 @@
+#' Muestra N de respuestas y nota al pie de página
+#'
+#' @param data Un data frame con los datos en formato sav.
+#' @param var Variable o variables a considerar para el cálculo de respuestas.
+#' @param unit Unidad de observación para declarar el N.
 #' @export
 show_n <- function(data, var, unit = NULL) {
 

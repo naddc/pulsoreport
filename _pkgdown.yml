@@ -1,14 +1,18 @@
 template:
   bootstrap: 5
 
-navbar:
-  title: "Pulsoreport"
-  left:
-    - text: "Home"
-      href: index.html
-
 pkgdown:
   github: "naddc/pulsoreport"
   site_url: "https://naddc.github.io/pulsoreport"
   build:
     readme: TRUE
+    reference: TRUE
+
+navbar:
+  title: "Pulsoreport"
+  left:
+    - text: "Intro"
+      href: index.html
+    - text: "Referencia"
+      href: reference/index.html
+
