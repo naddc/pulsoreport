@@ -4,45 +4,270 @@ subtitle: "Prototipo del paquete 'pulso2'"
 author: "Por encargo de PULSO PUCP"
 date: "`r Sys.setlocale('LC_TIME', 'es_ES.UTF-8'); format(Sys.Date(), '%d de %B de %Y')`"
 output: 
-  pulso2::pptx_slides
+  pulsoreport::pptx_slides
 params:
-  data:
+  ados: "data_ados.sav"
+  ados_unit: "adolescentes"
+  adultosj: "data_adultosj.sav"
+  adultosj_unit: "adultos jóvenes"
+  adultosi: "data_adultosi.sav"
+  adultosi_unit: "adultos intermedios"
+  adultosm: "data_adultosm.sav"
+  adultosm_unit: "adultos mayores"
 ---
 
 ```{r setup, include=FALSE}
-# 1. SETUP ----
-## 1.1. opts chunk
-knitr::opts_chunk$set(echo = FALSE, 
-                      message = FALSE, 
-                      warning = FALSE,
-                      collapse = FALSE)
-
+# 1. opts chunk
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, collapse = FALSE)
+# 2. Ubicación del sistema
 Sys.setlocale(category = "LC_TIME", locale = "es_ES.UTF-8")
+# 3. Carga de paquetes
+pacman::p_load(officedown, officer, rvg, pulsoreport, dplyr)
+# 4. Construcción de rutas dinámicas
+cargar_datos(params)
 
-## 1.2. Cargar paquetes
-library(officedown)
-library(officer)
-library(dplyr)
-library(haven)
-library(sjlabelled)
-library(forcats)
-library(ggplot2)
-library(ggh4x)
-library(ggtext)
-library(grid)
-library(gridExtra)
-library(patchwork)
-library(ggpubr)
-library(stringr)
-library(rlang)
-library(rvg)
-library(pulso2)
-
-## 1.3. Construir las rutas dinámicamente
-datapath <- here::here(params$data)
-data <- read_sav(datapath)
-
-## 1.4. Turn off the automatic use of showtext functionality, so that the dml function can works properly
-showtext::showtext_auto(FALSE) 
+escalas_layout1 <- function() {
+  cat("\n\n::::: columns\n\n")
+  cat("\n\n::: column\n\n")
+}
+escalas_layout2 <- function() {
+  cat("\n\n:::\n\n")
+  cat("\n\n::: column\n\n")
+  cat("\n\n:::\n\n")
+  cat("\n\n:::::\n\n")
+}
 ```
 
+## 
+
+## OBJETIVO GENERAL
+```{r layout='Content with Caption', results='asis'}
+cat("Conocer los hábitos y la percepción de adolescentes, adultos jóvenes, intermedios y mayores de Lima y Callao respecto a la lectura y la accesibilidad de materiales de lectura.\n\n")
+knitr::include_graphics("Bullseye.png")
+```
+
+## ESCALA USADA EN LOS CUESTIONARIOS
+```{r layout = 'Comparison', results='asis'}
+escalas_layout1()
+cat("Los cuestionarios estuvieron compuestos por una escala de cuatro grados. Haciendo uso de ella los encuestados señalaron que tan de acuerdo o en desacuerdo se encontraban con cada afirmación. La escala fue la siguiente:\n\n")
+knitr::include_graphics("Escala.png")
+escalas_layout2()
+```
+
+## TOP TWO BOX
+```{r layout = 'Comparison', results='asis'}
+escalas_layout1()
+cat("Con el fin de hacer la lectura de datos de forma más amigable se planteó la suma de los dos valores superiores “de acuerdo” y “totalmente de acuerdo”, comúnmente llamada top two box. Esta suma permite comparar de manera más rápida y eficiente los datos entre categorías o con mediciones de otros años.\n\n")
+knitr::include_graphics("T2B.png")
+escalas_layout2()
+```
+
+## FICHA TÉCNICA
+
+```{r ft.left=0.5, ft.top=1.3}
+tribble(
+  ~Tipo_Tecnica, ~Info,
+  "Tipo y técnica", "Metodología cuantitativa mediante encuestas online en la plataforma $Survey Monkey$, aplicadas de manera telefónica y virtualmente a través de correos electrónicos",
+  "Universo",  "Adolescentes entre 13 y 18 años de Lima y Callao\n\nAdultos jóvenes entre 19 y 34 años de Lima y Callao\n\nAdultos intermedios entre 35 y 59 años de Lima y Callao\n\nAdultos mayores de 60 años de Lima y Callao",
+  "Población",  "X adolescentes entre 13 y 18 años de Lima y Callao\n\nX adultos jóvenes entre 19 y 34 años de Lima y Callao\n\nX adultos intermedios entre 35 y 59 años de Lima y Callao\n\nX adultos mayores de 60 años de Lima y Callao",
+  "Muestreo", "No probabilístico por conveniencia respetando las cuotas según variables de control",
+  "Muestra", "236 adolescentes entre 13 y 18 años de Lima y Callao\n\n92 adultos jóvenes entre 19 y 34 años de Lima y Callao\n\n26 adultos intermedios entre 35 y 59 años de Lima y Callao\n\nX adultos mayores de 60 años de Lima y Callao",
+  "Trabajo de campo", "Del 05 de agosto al 23 de septiembre del 2025") %>% 
+  fichatec()
+```
+
+# PRINCIPALES RESULTADOS
+
+# PERFIL DEL ENCUESTADO
+
+## PERFIL DEL PÚBLICO ADULTO JOVEN
+
+::::: columns
+::: column
+```{r ph=officer::ph_location(left = 0.3, top = 1.5, width = 4.5, height = 3)}
+adultosj %>% plot_unica_h('P2', title = 'Formato en el que lee con mayor frecuencia', order_freq = TRUE, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.3, top = 5, width = 4.5, height = 1.5)}
+adultosj %>% plot_unica_h('P4', title = 'Dedica tiempo regularmente a la lectura', ancho = 0.7) -> p
+dml(ggobj = p)
+```
+:::
+::: column
+```{r ph=officer::ph_location(left = 8.8, top = 2.5, width = 4, height = 3.2)}
+adultosj %>% plot_unica_h('P3', title = 'Tiempo que suele tardar en comenzar un nuevo libro') -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.076, top = 7.26, width = 13.2, height = 0.2)}
+adultosj %>% show_n(c('P2','P3','P4')) -> p
+dml(ggobj = p)
+```
+:::
+:::::
+
+## PERFIL DEL PÚBLICO ADULTO INTERMEDIO
+
+::::: columns
+::: column
+```{r ph=officer::ph_location(left = 0.3, top = 2, width = 4.5, height = 2)}
+adultosi %>% plot_unica_h('F1', order_freq = TRUE, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.3, top = 4.5, width = 4.5, height = 2)}
+adultosi %>% plot_unica_h('edad_agrupada', show_n = TRUE, ancho = 0.7) -> p
+dml(ggobj = p)
+```
+:::
+::: column
+```{r ph=officer::ph_location(left = 8.6, top = 2.5, width = 4, height = 3.2)}
+adultosi %>% plot_unica_h('F5') -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.076, top = 7.26, width = 13.2, height = 0.2)}
+adultosi %>% show_n(c('F1','edad_agrupada','F5')) -> p
+dml(ggobj = p)
+```
+:::
+:::::
+
+# SECCIÓN 1: HÁBITOS DE LECTURA O LA TEMÁTICA CORRESPONDIENTE
+
+## TÍTULO: GRÁFICO DE TORTA EN TODA LA DIAPOSITIVA
+- ADOLESCENTES
+```{r ph=officer::ph_location(left = 1, top = 1.5, width = 11.5, height = 4.8)}
+ados %>% plot_torta(P1, title.pos = 'left', show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.076, top = 7.26, width = 13.2, height = 0.2)}
+ados %>% show_n(var = 'P1') -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: AHORA UNA BARRA ESCALAR
+- ADOLESCENTES
+```{r ph = officer::ph_location_fullsize()}
+ados %>% plot_escala(c('P2_1')) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: GRAFICAMOS DOS PREGUNTAS A LA VEZ
+- ADOLESCENTES
+```{r ph = officer::ph_location_fullsize()}
+ados %>% plot_escala(c('P2_2', 'P2_3')) -> p
+dml(ggobj = p)
+```
+
+# SECCIÓN 2: HÁBITOS DE LECTURA O LA TEMÁTICA CORRESPONDIENTE
+
+## TÍTULO: TORTA Y BARRAS VERTICALES
+- ADULTOS JÓVENES
+```{r ph=officer::ph_location(left = 0.3, top = 1.5, width = 7, height = 5)}
+adultosj %>% plot_torta(P5, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 7.3, top = 1.5, width = 5, height = 5)}
+adultosj %>% plot_unica_v(P3, title = 'Tiempo que le tomó conseguir trabajo', show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.076, top = 7.26, width = 13.2, height = 0.2)}
+adultosj %>% show_n(c('P3', 'P5')) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: TRES BARRAS ESCALARES
+- ADULTOS JÓVENES
+```{r ph = officer::ph_location_fullsize()}
+adultosj %>% plot_escala(c('P7_4', 'P7_5', 'P7_6')) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO 3: CUATRO BARRAS ESCALARES
+- ADULTOS JÓVENES
+```{r ph = officer::ph_location_fullsize()}
+adultosj %>% plot_escala(c('P7_7', 'P7_8', 'P7_9', 'P7_1')) -> p
+dml(ggobj = p)
+```
+
+# SECCIÓN 3: HÁBITOS DE LECTURA O LA TEMÁTICA CORRESPONDIENTE
+
+## TÍTULO: DOS TORTAS
+- ADULTOS INTERMEDIOS
+```{r ph=officer::ph_location(left = 0.3, top = 1.8, width = 7, height = 5)}
+adultosi %>% plot_torta(F6, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 6, top = 1.8, width = 7, height = 5)}
+adultosi %>% plot_torta(P2, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.076, top = 7.26, width = 13.2, height = 0.2)}
+adultosi %>% show_n(c('F6', 'P2')) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: TAMBIÉN FUNCIONA CON CINCO BARRAS
+- ADULTOS INTERMEDIOS
+```{r ph = officer::ph_location_fullsize()}
+adultosi %>% plot_escala(c('P4', 'P5', 'P6', 'P7', 'P9')) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: Y HASTA SEIS
+- ADULTOS INTERMEDIOS
+```{r ph = officer::ph_location_fullsize()}
+adultosi %>% plot_escala(c('P2', 'P4', 'P5', 'P6', 'P7', 'P9')) -> p
+dml(ggobj = p)
+```
+
+# SECCIÓN 4: HÁBITOS DE LECTURA O LA TEMÁTICA CORRESPONDIENTE
+
+## TÍTULO: BARRAS VERTICALES AGRUPADAS Y TORTA
+- ADULTOS INTERMEDIOS
+```{r ph=officer::ph_location(left = 1.5, top = 1.8, width = 5, height = 5)}
+adultosi %>% plot_unica_v(F5, group = edad_agrupada, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 7.3, top = 1.8, width = 5, height = 5)}
+adultosi %>% plot_torta(F7, show_n = TRUE) -> p
+dml(ggobj = p)
+```
+```{r ph=officer::ph_location(left = 0.076, top = 7.26, width = 13.2, height = 0.2)}
+adultosi %>% show_n(c('F7', 'F5')) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: GRÁFICOS COMPARATIVOS DE PREGUNTAS ESCALARES
+```{r ph = officer::ph_location_fullsize()}
+plot_escala_gruppa(vars = list(ados = c('P2_3', 'P2_1'),
+                               adultosj = c('P7_3','P7_1'),
+                               adultosi = c('P3', 'P1'),
+                               adultosm = c('P2_3', 'P2_1'))) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: GRÁFICOS COMPARATIVOS DE PREGUNTAS ESCALARES
+```{r ph = officer::ph_location_fullsize()}
+plot_escala_gruppa(vars = list(ados = c('P2_3', 'P2_1'),
+                               adultosj = c('P7_3','P7_1'),
+                               adultosi = c('P3','P1'))) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: GRÁFICOS COMPARATIVOS DE PREGUNTAS ESCALARES
+```{r ph = officer::ph_location_fullsize()}
+plot_escala_gruppa(vars = list(ados = c('P2_3', 'P2_1'),
+                               adultosj = c('P7_3','P7_1'),
+                               adultosi = c('P3'),
+                               adultosm = c('P2_3', 'P2_1'))) -> p
+dml(ggobj = p)
+```
+
+## TÍTULO: GRÁFICOS COMPARATIVOS DE PREGUNTAS ESCALARES
+- Conoce plataformas digitales para acceder a libros y artículos
+```{r ph = officer::ph_location_fullsize()}
+plot_escala_gruppa(vars = list(ados = 'P2_3',
+                               adultosj = 'P7_3',
+                               adultosi = 'P3',
+                               adultosm = 'P2_3')) -> p
+dml(ggobj = p)
+```
