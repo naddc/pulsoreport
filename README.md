@@ -21,13 +21,12 @@ El paquete contiene una plantilla de PowerPoint desde RMarkdown y bases *dummy* 
 
 ## Vista previa de slides
 
-
-![Diapositiva con gráfico de torta, gráfico de barras y N](man/figures/TortaBarras.png)
-
-
-
-![Diapositiva con gráfico escalar](man/figures/CuatroEscalares.png)
+### Diapositiva con gráfico de torta, gráfico de barras y N
+![](man/figures/TortaBarras.png)
 
 
+### Diapositiva con gráfico escalar
+![](man/figures/CuatroEscalares.png)
 
-![Diapositiva con gráfico escalar agrupado](man/figures/EscalarGruppa.png)
+### Diapositiva con gráfico escalar agrupado
+![](man/figures/EscalarGruppa.png)
