@@ -4,7 +4,14 @@
 \alias{plot_torta}
 \title{Gráfico de torta para preguntas dicotómicas, para PowerPoint}
 \usage{
-plot_torta(data, var, title = NULL, title.pos = "top", show_n = FALSE)
+plot_torta(
+  data,
+  var,
+  title = NULL,
+  title.pos = "top",
+  legend.pos = "bottom",
+  show_n = FALSE
+)
 }
 \arguments{
 \item{data}{Un data frame con los datos en formato sav.}

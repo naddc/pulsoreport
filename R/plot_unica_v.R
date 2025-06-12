@@ -1,4 +1,4 @@
-#' Genera un gráfico de barras verticales para preguntas de respuesta única, para PowerPoint
+#' Gráfico de barras verticales para respuestas únicas
 #'
 #' @import ggplot2
 #' @import ggh4x
@@ -98,7 +98,6 @@ plot_unica_v <- function(data, var, group = NULL, order_freq = FALSE,
                               family = "Arial")) +
         ggplot2::scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
     }
-
   }
   else {
     ymid <- (max(tab$prop) - min(tab$prop))/7
@@ -119,8 +118,8 @@ plot_unica_v <- function(data, var, group = NULL, order_freq = FALSE,
           text = element_text(color = "#002060",
                               family = "Arial")) +
         ggplot2::scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
-    }
       }
+    }
   if (isTRUE(show_n)) {
     p <- p + labs(subtitle = paste('N =', n_total)) +
       ggplot2::theme(plot.subtitle = element_text(size = 10,
@@ -131,7 +130,6 @@ plot_unica_v <- function(data, var, group = NULL, order_freq = FALSE,
                                          vjust = 0))
   }
   if(isTRUE(show_notes)) {
-
     nombre_data <- if (deparse(substitute(data)) == ".") {
       deparse(sys.call(-1)[[2]])
     } else {

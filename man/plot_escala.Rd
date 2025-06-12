@@ -4,7 +4,14 @@
 \alias{plot_escala}
 \title{Genera un gráfico de barras horizontales apiladas para preguntas escalares, para PowerPoint}
 \usage{
-plot_escala(data, vars, levels = NULL, unit = NULL, T2B = TRUE)
+plot_escala(
+  data,
+  vars,
+  levels = NULL,
+  T2B = TRUE,
+  unit = NULL,
+  unit_extra = TRUE
+)
 }
 \arguments{
 \item{data}{Un data frame con los datos en formato sav.}
@@ -13,9 +20,11 @@ plot_escala(data, vars, levels = NULL, unit = NULL, T2B = TRUE)
 
 \item{levels}{Niveles de la escala para ordenar la presentación. Va de negativo a positivo en cuatro opciones y después de eso, valores NA.}
 
+\item{T2B}{Define si se calcula e incluye en el gráfico el "Top 2 Box" (TRUE por defecto).}
+
 \item{unit}{Unidad de observación para declarar el N de la base usada para el gráfico.}
 
-\item{T2B}{TRUE por defecto. Si es TRUE, calcula e incluye en el gráfico el "Top 2 Box".}
+\item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
 }
 \value{
 Un objeto ggplot que puede ser exportado como dml.

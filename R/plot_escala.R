@@ -7,12 +7,17 @@
 #' @param data Un data frame con los datos en formato sav.
 #' @param vars Variable(s) para plotear.
 #' @param levels Niveles de la escala para ordenar la presentación. Va de negativo a positivo en cuatro opciones y después de eso, valores NA.
+#' @param T2B Define si se calcula e incluye en el gráfico el "Top 2 Box" (TRUE por defecto).
 #' @param unit Unidad de observación para declarar el N de la base usada para el gráfico.
-#' @param T2B TRUE por defecto. Si es TRUE, calcula e incluye en el gráfico el "Top 2 Box".
+#' @param unit_extra Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.
 #' @return Un objeto ggplot que puede ser exportado como dml.
 #' @export
-plot_escala <- function(data, vars, levels = NULL,
-                        unit = NULL, T2B = TRUE) {
+plot_escala <- function(data,
+                        vars,
+                        levels = NULL,
+                        T2B = TRUE,
+                        unit = NULL,
+                        unit_extra = TRUE) {
 
   # 1. CREACIÓN DE TABLA ----
   tablas <- list() # Crear lista para almacenar tablas y etiquetas
@@ -27,7 +32,7 @@ plot_escala <- function(data, vars, levels = NULL,
     tab <- as.data.frame(prop.table(table(sjlabelled::as_label(data[[var]])))*100) # Crear tabla de proporciones
 
     if (is.null(levels)) {
-      levels <- names(attr(data[[var]], "labels"))
+      levels <- names(attr(data[[var]], 'labels'))
     }
     if (is.list(levels)) { # Verificar si levels es una lista
       nivel_actual = levels[[var]]
@@ -97,63 +102,67 @@ plot_escala <- function(data, vars, levels = NULL,
     dplyr::summarise(total = n()) %>%
     dplyr::pull(total)
 
-  nombre_data <- if (deparse(substitute(data)) == ".") {
+  nombre_data <- if (deparse(substitute(data)) == '.') {
     deparse(sys.call(-1)[[2]])
   } else {
     deparse(substitute(data))  # Si no está en un pipe, captura normal
   }
   if (is.null(unit)) {
-    unit <- if (paste0(nombre_data, "_unit") %in% names(params)) {
-      params[[paste0(nombre_data, "_unit")]]
+    if (paste0(nombre_data, '_unit') %in% names(params)) {
+      unit <- params[[paste0(nombre_data, '_unit')]]
+
+      if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
+        unit <- paste(unit, params[['unit_extra']])
+      }
     } else {
-      "participantes"
+      unit <- 'participantes'
     }
   }
 
   ## 2.4. Generar gráfico ----
   p <- ggplot2::ggplot(data = tab, aes(x = control, y = Freq, fill = Var1)) +
-    ggplot2::geom_col(position = "stack", width = if (length(unique(tab$control)) < 2) 0.3
+    ggplot2::geom_col(position = 'stack', width = if (length(unique(tab$control)) < 2) 0.3
                       else if (length(unique(tab$control)) == 2) 0.4
                       else 0.5) +
-    ggrepel::geom_text_repel(aes(label = paste0(round(Freq), "%")),
+    ggrepel::geom_text_repel(aes(label = paste0(round(Freq), '%')),
                              position = ggpp::position_stacknudge(vjust = 0.5),
                              size = 4.93,
-                             color = "#002060",
-                             family = "Arial",
-                             fontface = "bold",
+                             color = '#002060',
+                             family = 'Arial',
+                             fontface = 'bold',
                              direction = 'x',
                              point.size = NA,
                              box.padding = 0) +
     ggplot2::coord_flip() +
     ggplot2::theme_void() +
-    ggh4x::force_panelsizes(total_width = unit(21, "cm"), total_height = unit(4.55, "in")) +
+    ggh4x::force_panelsizes(total_width = unit(21, 'cm'), total_height = unit(4.55, 'in')) +
     ggplot2::theme(
       axis.text.y = element_text(size = 12,
                                  margin = margin(l = 20)),
-      text = element_text(color = "#002060",
-                          family = "Arial"),
+      text = element_text(color = '#002060',
+                          family = 'Arial'),
       legend.title = element_blank(),
-      legend.position = "bottom",
+      legend.position = 'bottom',
       legend.text = element_text(size = 10.5,
-                                 color = "#002060",
-                                 family = "Arial"),
+                                 color = '#002060',
+                                 family = 'Arial'),
       legend.margin = margin(t = 15, r = 350, b = 0, l = 0),
       legend.key.size=unit(0.4, 'cm'),
       plot.caption = element_text(hjust=c(-0.039, 1.07),
-                                  color = "#002060",
+                                  color = '#002060',
                                   size = 10,
-                                  face = "bold",
-                                  family = "Arial",
+                                  face = 'bold',
+                                  family = 'Arial',
                                   margin = margin(t = 48)),
-      plot.caption.position = "plot",
+      plot.caption.position = 'plot',
       plot.margin = margin(l = 20, r = 30, t = 100, b = 0),
-      panel.background = element_rect(fill = "transparent", colour = NA),
-      plot.background = element_rect(fill = "transparent", colour = NA)) +
+      panel.background = element_rect(fill = 'transparent', colour = NA),
+      plot.background = element_rect(fill = 'transparent', colour = NA)) +
     ggplot2::scale_y_reverse() +
     ggplot2::scale_fill_manual(values = colores) +
     ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 55)) +
-    ggplot2::labs(caption = c(paste('Base:', n_total, unit),
-                     "Los porcentajes están redondeados y pueden no sumar 100%"))
+    ggplot2::labs(caption = c(str_wrap(paste('Base:', n_total, unit), width = 80),
+                     'Los porcentajes están redondeados y pueden no sumar 100%'))
   if (isTRUE(T2B)) {
     # # Obtener los límites del eje Y
     # g <- ggplot2::ggplot_build(p)
@@ -167,21 +176,21 @@ plot_escala <- function(data, vars, levels = NULL,
                        aes(x = control, y = -10, label = Top2B),
                        inherit.aes = FALSE,
                        size = 4.55,
-                       color = "#548135",
-                       fontface = "bold",
-                       family = "Arial",
+                       color = '#548135',
+                       fontface = 'bold',
+                       family = 'Arial',
                        hjust = 0) +
-      ggplot2::labs(subtitle = "TOP TWO BOX") +
+      ggplot2::labs(subtitle = 'TOP TWO BOX') +
       ggplot2::theme(plot.subtitle = element_text(size = 13,
-                                         colour = "#548135",
-                                         face = "bold",
-                                         family = "Arial",
+                                         colour = '#548135',
+                                         face = 'bold',
+                                         family = 'Arial',
                                          hjust = 1.05,
                                          vjust = 2))
   }
 
   g <- ggplot2::ggplotGrob(p) # Convertir en gtable
-  g$widths[6] <- unit(10, "cm")  # Fijar el espacio del eje Y
+  g$widths[6] <- unit(10, 'cm')  # Fijar el espacio del eje Y
   p_fixed <- ggpubr::as_ggplot(g)  # Convierte de nuevo en un objeto ggplot2
   return(p_fixed)
 }

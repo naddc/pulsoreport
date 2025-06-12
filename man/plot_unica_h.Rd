@@ -2,17 +2,21 @@
 % Please edit documentation in R/plot_unica_h.R
 \name{plot_unica_h}
 \alias{plot_unica_h}
-\title{Genera un gráfico de barras horizontales para preguntas de respuesta única, para PowerPoint}
+\title{Gráfico de barras horizontales para respuestas únicas}
 \usage{
 plot_unica_h(
-  data,
-  var,
+  data = NULL,
+  vars,
   levels = NULL,
   order_freq = FALSE,
-  ancho = NULL,
+  group = NULL,
+  display = "simple",
   title = NULL,
   unit = NULL,
+  unit_extra = TRUE,
   x_labels = TRUE,
+  labels_width = 30,
+  ancho = 0.7,
   show_notes = FALSE,
   show_n = FALSE
 )
@@ -20,17 +24,25 @@ plot_unica_h(
 \arguments{
 \item{data}{Un data frame con los datos en formato sav.}
 
-\item{var}{Variable para plotear.}
+\item{vars}{Variable o variables para plotear.}
 
-\item{levels}{Niveles para ordenar variables escalares. Si es NULL (opción por defecto), toma el orden de los valores de la variable.}
+\item{levels}{Permite introducir un conjunto de niveles particular para ordenar variables escalares. Si es NULL (opción por defecto), toma el orden de los valores de la variable.}
 
 \item{order_freq}{Define si las barras se ordenarán según frecuencia (si TRUE). FALSE (opción por defecto) permite usar el orden de levels.}
 
-\item{title}{Recibe un título para el gráfico. Si es NULL (opción por defecto), toma la etiqueta de la variable en var.}
+\item{group}{X}
+
+\item{display}{Define agrupamiento de barras. Si es "simple" (opción por defecto), se muestran barras individuales. Si es "stacked", se muestran barras apiladas.}
+
+\item{title}{Recibe un título para el gráfico. Si es NULL (opción por defecto), toma la etiqueta de la variable en vars.}
 
 \item{unit}{Unidad de observación para declarar el N de la base usada para el gráfico. Si es NULL (opción por defecto), toma el parámeto correspondiente al dataset en data ("data_unit") indicado en los params del yaml. Puede recibir un elemento directamente (no recomendado).}
 
+\item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
+
 \item{x_labels}{Define si se mostrarán las etiquetas del eje x, pensando en un gráfico invertido (si TRUE). FALSE (opción por defecto) muestra las etiquetas de las categorías de las barras.}
+
+\item{ancho}{Define el ancho de las barras (0.6 por defecto).}
 
 \item{show_notes}{Define si se mostrarán las notas de pie de "N" y el mensaje sobre el redondeo (si TRUE). FALSE por defecto.}
 
@@ -40,5 +52,5 @@ plot_unica_h(
 Un objeto ggplot que puede ser exportado como dml.
 }
 \description{
-Genera un gráfico de barras horizontales para preguntas de respuesta única, para PowerPoint
+Gráfico de barras horizontales para respuestas únicas
 }

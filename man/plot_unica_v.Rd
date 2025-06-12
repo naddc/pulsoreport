@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_unica_v.R
 \name{plot_unica_v}
 \alias{plot_unica_v}
-\title{Genera un gráfico de barras verticales para preguntas de respuesta única, para PowerPoint}
+\title{Gráfico de barras verticales para respuestas únicas}
 \usage{
 plot_unica_v(
   data,
@@ -37,5 +37,5 @@ plot_unica_v(
 Un objeto ggplot que puede ser exportado como dml.
 }
 \description{
-Genera un gráfico de barras verticales para preguntas de respuesta única, para PowerPoint
+Gráfico de barras verticales para respuestas únicas
 }

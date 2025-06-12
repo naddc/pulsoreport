@@ -4,7 +4,7 @@
 \alias{show_n}
 \title{Muestra N de respuestas y nota al pie de página}
 \usage{
-show_n(data, var, unit = NULL)
+show_n(data, var, unit = NULL, unit_extra = TRUE)
 }
 \arguments{
 \item{data}{Un data frame con los datos en formato sav.}
@@ -12,6 +12,8 @@ show_n(data, var, unit = NULL)
 \item{var}{Variable o variables a considerar para el cálculo de respuestas.}
 
 \item{unit}{Unidad de observación para declarar el N.}
+
+\item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
 }
 \description{
 Muestra N de respuestas y nota al pie de página
