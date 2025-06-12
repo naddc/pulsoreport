@@ -39,7 +39,14 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_escala</span><span class="op">(</span><span class="va">data</span>, <span class="va">vars</span>, levels <span class="op">=</span> <span class="cn">NULL</span>, unit <span class="op">=</span> <span class="cn">NULL</span>, T2B <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_escala</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">vars</span>,</span>
+<span>  levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  T2B <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  unit <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  unit_extra <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -58,12 +65,16 @@
 <dd><p>Niveles de la escala para ordenar la presentación. Va de negativo a positivo en cuatro opciones y después de eso, valores NA.</p></dd>
 
 
+<dt id="arg-t-b">T2B<a class="anchor" aria-label="anchor" href="#arg-t-b"></a></dt>
+<dd><p>Define si se calcula e incluye en el gráfico el "Top 2 Box" (TRUE por defecto).</p></dd>
+
+
 <dt id="arg-unit">unit<a class="anchor" aria-label="anchor" href="#arg-unit"></a></dt>
 <dd><p>Unidad de observación para declarar el N de la base usada para el gráfico.</p></dd>
 
 
-<dt id="arg-t-b">T2B<a class="anchor" aria-label="anchor" href="#arg-t-b"></a></dt>
-<dd><p>TRUE por defecto. Si es TRUE, calcula e incluye en el gráfico el "Top 2 Box".</p></dd>
+<dt id="arg-unit-extra">unit_extra<a class="anchor" aria-label="anchor" href="#arg-unit-extra"></a></dt>
+<dd><p>Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.</p></dd>
 
 </dl></div>
     <div class="section level2">
