@@ -9,7 +9,8 @@ plot_gruppa(
   ancho = 0.7,
   T2B = TRUE,
   unit_extra = TRUE,
-  show_notes = TRUE
+  show_notes = TRUE,
+  x_labels = TRUE
 )
 }
 \arguments{

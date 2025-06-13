@@ -247,6 +247,7 @@ plot_unica_h <- function(data = NULL,
           legend.key.spacing.x = unit(0.5, 'cm'),
           plot.margin = margin(t = 5, b = 5)
         )
+
       if (isTRUE(x_labels)) {
         p <- p +
           ggplot2::theme(
@@ -268,6 +269,7 @@ plot_unica_h <- function(data = NULL,
                            family = "Arial",
                            fontface = "bold")  +
         ggplot2::coord_flip()
+
       if (isTRUE(x_labels)) {
         p <- p +
           ggplot2::theme(
@@ -318,16 +320,25 @@ plot_unica_h <- function(data = NULL,
           ) +
           theme_void() +
           theme(
-            axis.text.y = element_text(
-              size = 12,
-              margin = margin(r = 10),
-              family = 'Arial',
-              color = '#002060'),
             axis.ticks.y = element_blank(),
             legend.position = 'none',
             plot.margin = margin(t = -10)
           )
 
+        if (length(unique(tab_final$group)) <= 1) {
+          x_labels <- FALSE
+        }
+
+        if (isTRUE(x_labels)) {
+          p <- p +
+            ggplot2::theme(
+              axis.text.y = element_text(size = 12,
+                                         margin = margin(r = 10),
+                                         family = 'Arial',
+                                         color = '#002060')
+              )
+        }
+        p
       })
 
       # Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
@@ -407,6 +418,9 @@ plot_unica_h <- function(data = NULL,
                                      family = 'Arial'),
         legend.position = 'none') +
       ggplot2::scale_y_reverse()
+    if (length(unique(tab_final$group)) <= 1) {
+      x_labels <- FALSE
+    }
     if (isTRUE(x_labels)) {
       p <- p +
         ggplot2::theme(

@@ -17,7 +17,8 @@ plot_gruppa <- function(vars,
                         ancho = 0.7,
                         T2B = TRUE,
                         unit_extra = TRUE,
-                        show_notes = TRUE) {
+                        show_notes = TRUE,
+                        x_labels = TRUE) {
 
   get_legend <- function(plot, legend = NULL) {
     gt <- ggplot2::ggplotGrob(plot)
@@ -44,7 +45,7 @@ plot_gruppa <- function(vars,
           n_labels <- length(attr(get(publico)[[.x]], "labels"))
           if (n_labels < 5) "dicotomica" else "escalar"
         }) %>%
-        set_names(var_list)
+        purrr::set_names(var_list)
     })
   ## Separar por tipo
   vars_dicotomicas <- clasificacion_vars %>%
@@ -153,6 +154,9 @@ plot_gruppa <- function(vars,
       control_levels <- unique(tab_final$control)
       plots_list <- purrr::map(control_levels, function(ctrl) {
         df_ctrl <- tab_final %>% filter(control == ctrl)
+        if (length(unique(tab_final$group)) <= 1) {
+          x_labels <- FALSE
+        }
         p <- ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
           ggplot2::geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.4 else ancho) +
           ggrepel::geom_text_repel(
@@ -173,14 +177,19 @@ plot_gruppa <- function(vars,
             expand =  if (length(unique(df_ctrl$group)) == 1) expansion(mult = c(0.5, 0.5)) else expansion(mult = c(0.4, 0.4))) +
           ggplot2::theme_void() +
           ggplot2::theme(
-            axis.text.y = element_text(
-              size = 12,
-              margin = margin(r = 10),
-              family = 'Arial',
-              color = '#002060'),
             axis.ticks.y = element_blank(),
             legend.position = 'none',
             plot.margin = margin(t = -10))
+        if (isTRUE(x_labels)) {
+          p <- p +
+            ggplot2::theme(
+              axis.text.y = element_text(size = 12,
+                                         margin = margin(r = 10),
+                                         family = 'Arial',
+                                         color = '#002060')
+            )
+        }
+        p
       })
       ### Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
       aligned <- cowplot::align_plots(plotlist = plots_list, align = 'v', axis = 'l')
@@ -387,6 +396,9 @@ plot_gruppa <- function(vars,
       control_levels <- unique(tab_final$control)
       plots_list <- purrr::map(control_levels, function(ctrl) {
         df_ctrl <- tab_final %>% filter(control == ctrl)
+        if (length(unique(tab_final$group)) <= 1) {
+          x_labels <- FALSE
+        }
         p <- ggplot2::ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
           ggplot2::geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.5 else ancho) +
           ggrepel::geom_text_repel(
@@ -407,16 +419,21 @@ plot_gruppa <- function(vars,
             expand =  if (length(unique(df_ctrl$group)) <= 1) expansion(mult = c(0.5, 0.5)) else expansion(mult = c(0.4, 0.4))) +
           ggplot2::theme_void() +
           ggplot2::theme(
-            axis.text.y = element_text(
-              size = 12,
-              margin = margin(r = 10),
-              family = 'Arial',
-              color = '#002060'),
             axis.ticks.y = element_blank(),
             legend.position = 'none',
             plot.margin = margin(
               t = if (length(unique(df_ctrl$group)) == 2) 0 else -10,
               b = if (length(unique(df_ctrl$group)) == 2) 0 else -10))
+        if (isTRUE(x_labels)) {
+          p <- p +
+            ggplot2::theme(
+              axis.text.y = element_text(size = 12,
+                                         margin = margin(r = 10),
+                                         family = 'Arial',
+                                         color = '#002060')
+            )
+        }
+        p
       })
       ### Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
       aligned <- cowplot::align_plots(plotlist = plots_list, align = 'v', axis = 'l')
@@ -574,7 +591,25 @@ plot_gruppa <- function(vars,
         plot.background = element_rect(fill = 'transparent', color = NA),
         panel.background = element_rect(fill = 'transparent', color = NA))
   }
-  # 3. Unir gráficos de variables dicotómicas y escalares ------------
+  # 3. Calcular Ns ---------
+  totales <- list()
+  for (nombre_data in names(vars)) {
+    dataset <- get(nombre_data)  # Obtener el dataset por su nombre
+    var_name <- vars[[nombre_data]]
+  ### Calcular Ns
+  n <- dataset %>%
+    select(all_of(var_name)) %>%
+    dplyr::mutate(across(everything(), as.character)) %>%
+    filter(rowSums(!is.na(.) & . != '') > 0) %>%
+    dplyr::summarise(total = n()) %>%
+    dplyr::pull(total)
+  totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
+  n_totales_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
+  }
+  if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
+    n_totales_totales <- paste(n_totales_totales, params[['unit_extra']])
+  }
+  # 4. Unir gráficos de variables dicotómicas y escalares ------------
   if (!is.null(p_dicotomicas) && !is.null(p_escalares)) {
     final_plot <- (p_dicotomicas / p_escalares) +
       patchwork::plot_layout(heights = c(4, 6)) &
@@ -608,7 +643,7 @@ plot_gruppa <- function(vars,
     ## Texto izquierdo (con lineheight) ----
     footer_izq <- ggplot() +
       geom_text(
-        aes(x = -0.06, y = 0, label = str_wrap(paste("Base:", n_totales), width = 67)),
+        aes(x = -0.06, y = 0, label = str_wrap(paste("Base:", n_totales_totales), width = 67)),
         hjust = 0, family = "Arial", size = 3.5, fontface = "bold",
         color = "#002060", lineheight = 0.85) +
       coord_cartesian(xlim = c(0, 1), clip = "off") +
