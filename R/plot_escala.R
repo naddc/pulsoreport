@@ -84,7 +84,7 @@ plot_escala <- function(data,
       T2B_calc <- data %>%
         dplyr::filter(!is.na(.[[var]])) %>%
         dplyr::mutate(top2 = (.[[var]] %in% c(escala, escala-1))) %>%
-        dplyr::summarise(top2_pct = round((sum(top2, na.rm = TRUE) / n()) * 100)) %>%
+        dplyr::summarise(top2_pct = janitor::round_half_up((sum(top2, na.rm = TRUE) / n()) * 100)) %>%
         dplyr::pull(top2_pct)
 
       T2B_df <- dplyr::bind_rows(T2B_df, tibble(
@@ -124,7 +124,7 @@ plot_escala <- function(data,
     ggplot2::geom_col(position = 'stack', width = if (length(unique(tab$control)) < 2) 0.3
                       else if (length(unique(tab$control)) == 2) 0.4
                       else 0.5) +
-    ggrepel::geom_text_repel(aes(label = paste0(round(Freq), '%')),
+    ggrepel::geom_text_repel(aes(label = paste0(janitor::round_half_up(Freq), '%')),
                              position = ggpp::position_stacknudge(vjust = 0.5),
                              size = 4.93,
                              color = '#002060',

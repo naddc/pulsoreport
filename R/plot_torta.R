@@ -26,7 +26,7 @@ plot_torta <- function(data, var, title = NULL, title.pos = 'top', legend.pos = 
   ggplot2::ggplot(aes(x = '', y = prop, fill = {{var}})) +
     ggplot2::geom_bar(stat = 'identity', width = 1, color = '#FFFFFF') +
     ggplot2::coord_polar('y', start = 0) +
-    ggplot2::geom_text(aes(label = paste0(round(prop), '%')),
+    ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), '%')),
               position = position_stack(vjust = 0.7),
               size = 4.93,
               fontface = 'bold',

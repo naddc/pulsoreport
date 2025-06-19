@@ -71,7 +71,7 @@ plot_unica_v <- function(data, var, group = NULL, order_freq = FALSE,
   if (!quo_is_null(enquo(group))) {
     p <- p +
       ggplot2::geom_col(width = 0.8, position = 'stack', color = "white") +
-      ggplot2::geom_text(aes(label = paste0(round(prop), "%")),
+      ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), "%")),
                 position = position_stack(vjust = 0.5),
                 size = 12/2.845,
                 color = "#FFFFFF",
@@ -103,7 +103,7 @@ plot_unica_v <- function(data, var, group = NULL, order_freq = FALSE,
     ymid <- (max(tab$prop) - min(tab$prop))/7
     p <- p +
       ggplot2::geom_col(width = 0.8, fill = '#336699') +
-      ggplot2::geom_text(aes(label = paste0(round(prop), "%")),
+      ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), "%")),
                          # ifelse(tab$prop < ymid, -1.5, 1.5)
                          vjust = -1.5,
                          # ifelse(tab$prop < ymid, "#002060", "#FFFFFF")

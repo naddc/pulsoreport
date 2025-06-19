@@ -129,7 +129,7 @@ plot_unica_h <- function(data = NULL,
         select(all_of(var_name)) %>%
         dplyr::mutate(across(everything(), as.character)) %>%
         filter(rowSums(!is.na(.) & . != '') > 0) %>%
-        dplyr::summarise(total = n()) %>%
+        dplyr::summarise(total = dplyr::n()) %>%
         dplyr::pull(total)
 
       totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
@@ -200,6 +200,10 @@ plot_unica_h <- function(data = NULL,
     tab_final$control <- factor(tab_final$control, levels = orden_control_wrapped)
 
     display <- 'stacked'
+
+    if (length(unique(tab_final$group)) <= 1) {
+      x_labels <- FALSE
+    }
   }
 
   # 2. Plotear --------------------------------------------------------------
@@ -227,7 +231,7 @@ plot_unica_h <- function(data = NULL,
     if (!rlang::quo_is_null(enquo(group))) {
       p <- p +
         ggplot2::geom_col(width = 0.8, position = 'stack', color = "white") +
-        ggplot2::geom_text(aes(label = paste0(round(prop), "%")),
+        ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), "%")),
                            position = position_stack(vjust = 0.5),
                            size = 12/2.845,
                            color = "#FFFFFF",
@@ -261,7 +265,7 @@ plot_unica_h <- function(data = NULL,
       ymid <- (max(tab$prop) - min(tab$prop))/6
       p <- p +
         ggplot2::geom_col(width = ancho, fill = '#336699') +
-        ggplot2::geom_text(aes(label = paste0(round(prop), "%")),
+        ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), "%")),
                            hjust = ifelse(tab$prop < ymid, -1, 0.5),
                            color = ifelse(tab$prop < ymid, "#002060", "#FFFFFF"),
                            position = position_stack(vjust = 0.5),
@@ -301,7 +305,7 @@ plot_unica_h <- function(data = NULL,
         p <- ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
           geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.4 else ancho) +
           geom_text_repel(
-            aes(label = paste0(round(Freq), '%')),
+            aes(label = paste0(janitor::round_half_up(Freq), '%')),
             position = ggpp::position_stacknudge(vjust = 0.5),
             size = 4.93,
             color = '#ffffff',
@@ -352,7 +356,7 @@ plot_unica_h <- function(data = NULL,
             fontsize = 13,
             fontfamily = 'Arial',
             col = '#002060',
-            fontface = 'bold',
+            fontface = if (isTRUE(x_labels)) 'bold' else 'plain',
             lineheight = 0.8
           )
         )
@@ -397,7 +401,7 @@ plot_unica_h <- function(data = NULL,
       ggplot2::geom_col(
         position = 'stack',
         width = ancho) +
-      ggrepel::geom_text_repel(ggplot2::aes(label = paste0(round(Freq), '%')),
+      ggrepel::geom_text_repel(ggplot2::aes(label = paste0(janitor::round_half_up(Freq), '%')),
                                position = ggpp::position_stacknudge(vjust = 0.5),
                                size = 4.93,
                                color = '#ffffff',

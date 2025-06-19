@@ -59,7 +59,7 @@ plot_escala_gruppa <- function(vars, T2B = TRUE, unit_extra = TRUE) {
         T2B_calc <- dataset %>%
           dplyr::filter(!is.na(.[[var_name]])) %>% # cambio para filtrar NA
           dplyr::mutate(top2 = (.[[var_name]] %in% c(4, 3))) %>%
-          dplyr::summarise(top2_pct = round((sum(top2, na.rm = TRUE) / n()) * 100)) %>%
+          dplyr::summarise(top2_pct = janitor::round_half_up((sum(top2, na.rm = TRUE) / n()) * 100)) %>%
           dplyr::pull(top2_pct)
 
         T2B_df <- dplyr::bind_rows(T2B_df,
@@ -160,7 +160,7 @@ plot_escala_gruppa <- function(vars, T2B = TRUE, unit_extra = TRUE) {
       p <- ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
         geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.4 else 0.6) +
         geom_text_repel(
-          aes(label = paste0(round(Freq), '%')),
+          aes(label = paste0(janitor::round_half_up(Freq), '%')),
           position = ggpp::position_stacknudge(vjust = 0.5),
           size = 4.93,
           color = '#002060',
@@ -294,7 +294,7 @@ plot_escala_gruppa <- function(vars, T2B = TRUE, unit_extra = TRUE) {
   else {
     p <- ggplot2::ggplot(data = tab_final, aes(x = group, y = Freq, fill = Var1)) +
       ggplot2::geom_col(position = 'stack', width = if (length(unique(tab_final$group)) < 2) 0.3 else 0.4) +
-      ggrepel::geom_text_repel(aes(label = paste0(round(Freq), '%')),
+      ggrepel::geom_text_repel(aes(label = paste0(janitor::round_half_up(Freq), '%')),
                                position = ggpp::position_stacknudge(vjust = 0.5),
                                size = 4.93,
                                color = '#002060',

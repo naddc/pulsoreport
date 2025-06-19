@@ -5,8 +5,14 @@
 \alias{reexports}
 \alias{\%>\%}
 \alias{tribble}
-\alias{select}
+\alias{tibble}
+\alias{n}
+\alias{summarise}
 \alias{filter}
+\alias{mutate}
+\alias{group_by}
+\alias{select}
+\alias{pull}
 \alias{fp_border}
 \alias{ph_location}
 \title{Objects exported from other packages}
@@ -16,12 +22,12 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{dplyr}{\code{\link[dplyr]{filter}}, \code{\link[dplyr]{select}}}
+  \item{dplyr}{\code{\link[dplyr]{filter}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr:context]{n}}, \code{\link[dplyr]{pull}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
 
   \item{magrittr}{\code{\link[magrittr:pipe]{\%>\%}}}
 
   \item{officer}{\code{\link[officer]{fp_border}}, \code{\link[officer]{ph_location}}}
 
-  \item{tibble}{\code{\link[tibble]{tribble}}}
+  \item{tibble}{\code{\link[tibble]{tibble}}, \code{\link[tibble]{tribble}}}
 }}
 

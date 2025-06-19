@@ -92,7 +92,7 @@ plot_gruppa <- function(vars,
         dplyr::select(all_of(var_name)) %>%
         dplyr::mutate(across(everything(), as.character)) %>%
         filter(rowSums(!is.na(.) & . != '') > 0) %>%
-        dplyr::summarise(total = n()) %>%
+        dplyr::summarise(total = dplyr::n()) %>%
         dplyr::pull(total)
       totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
       n_barras[[paste(nombre_data, var_name, sep = '_')]] <- n
@@ -150,6 +150,9 @@ plot_gruppa <- function(vars,
     tab_final$control <- factor(tab_final$control, levels = orden_control_wrapped)
     tab_final
     ## Plotear ----
+    if (length(unique(tab_final$group)) <= 1) {
+      x_labels <- FALSE
+    }
     if (length(unique(tab_final$control)) > 0) {
       control_levels <- unique(tab_final$control)
       plots_list <- purrr::map(control_levels, function(ctrl) {
@@ -160,7 +163,7 @@ plot_gruppa <- function(vars,
         p <- ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
           ggplot2::geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.4 else ancho) +
           ggrepel::geom_text_repel(
-            aes(label = paste0(round(Freq), '%')),
+            aes(label = paste0(janitor::round_half_up(Freq), '%')),
             position = ggpp::position_stacknudge(vjust = 0.5),
             size = 4.93,
             color = '#ffffff',
@@ -201,7 +204,7 @@ plot_gruppa <- function(vars,
             fontsize = 13,
             fontfamily = 'Arial',
             col = '#002060',
-            fontface = 'bold',
+            fontface = if (isTRUE(x_labels)) 'bold' else NULL,
             lineheight = 0.8))
         #### Combinar todo en arranged
         arranged <- if (isTRUE(T2B)) {
@@ -320,7 +323,7 @@ plot_gruppa <- function(vars,
           T2B_calc <- dataset %>%
             dplyr::filter(!is.na(.[[var_name]])) %>% # cambio para filtrar NA
             dplyr::mutate(top2 = (.[[var_name]] %in% c(4, 3))) %>%
-            dplyr::summarise(top2_pct = round((sum(top2, na.rm = TRUE) / n()) * 100)) %>%
+            dplyr::summarise(top2_pct = janitor::round_half_up((sum(top2, na.rm = TRUE) / dplyr::n()) * 100)) %>%
             dplyr::pull(top2_pct)
           T2B_df <- dplyr::bind_rows(T2B_df,
                                      tibble(
@@ -334,7 +337,7 @@ plot_gruppa <- function(vars,
         select(all_of(var_name)) %>%
         dplyr::mutate(across(everything(), as.character)) %>%
         filter(rowSums(!is.na(.) & . != '') > 0) %>%
-        dplyr::summarise(total = n()) %>%
+        dplyr::summarise(total = dplyr::n()) %>%
         dplyr::pull(total)
       totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
     }
@@ -402,7 +405,7 @@ plot_gruppa <- function(vars,
         p <- ggplot2::ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
           ggplot2::geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.5 else ancho) +
           ggrepel::geom_text_repel(
-            aes(label = paste0(round(Freq), '%')),
+            aes(label = paste0(janitor::round_half_up(Freq), '%')),
             position = ggpp::position_stacknudge(vjust = 0.5),
             size = 4.93,
             color = '#002060',
@@ -445,7 +448,7 @@ plot_gruppa <- function(vars,
             fontsize = 13,
             fontfamily = 'Arial',
             col = '#002060',
-            fontface = 'bold',
+            fontface = if (isTRUE(x_labels)) 'bold' else 'plain',
             lineheight = 0.8))
         #### Crear panel derecho T2B solo si se desea
         if (isTRUE(T2B)) {
@@ -601,7 +604,7 @@ plot_gruppa <- function(vars,
     select(all_of(var_name)) %>%
     dplyr::mutate(across(everything(), as.character)) %>%
     filter(rowSums(!is.na(.) & . != '') > 0) %>%
-    dplyr::summarise(total = n()) %>%
+    dplyr::summarise(total = dplyr::n()) %>%
     dplyr::pull(total)
   totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
   n_totales_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
