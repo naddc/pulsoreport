@@ -12,6 +12,7 @@
 #' @param min_value Define valor mínimo esperado para los ejes (si no se define, se calcula).
 #' @param max_value Define valor máximo esperado para los ejes (si no se define, se calcula).
 #' @return Un objeto ggplot que puede ser exportado como dml o png.
+#' @keywords internal
 
 ggspider <- function(data,
                      labels_width = 30,
@@ -24,19 +25,14 @@ ggspider <- function(data,
                      max_value = NULL
                      ) {
 
-  # ========================================
-  # 1. PARÁMETROS BÁSICOS
-  # ========================================
+  # 1. Parámteros básicos ==================
 
   n_axis <- ncol(data) - 1                       # Cantidad de variables (columnas excepto "group")
   var_names <- colnames(data)[-1]                # Nombres de las variables
-  angles <- seq(0, 2 * pi,                      # Ángulos equidistantes para cada eje (en sentido antihorario, empezando desde arriba)
+  angles <- seq(0, 2 * pi,                       # Ángulos equidistantes para cada eje (en sentido antihorario, empezando desde arriba)
                 length.out = n_axis + 1)[- (n_axis + 1)] + pi / 2
 
-
-  # ========================================
-  # 2. VALOR MÁXIMO y MÍNIMO (escala común para todos los ejes)
-  # ========================================
+  # 2. Valor máximo y mínimo ===============
 
   if (is.null(max_value)) {
     max_value <- max(data %>%
@@ -50,9 +46,7 @@ ggspider <- function(data,
                      na.rm = TRUE)
   }
 
-  # ========================================
-  # 3. COORDENADAS DE LOS PUNTOS
-  # ========================================
+  # 3. Coordenadas de los puntos ===========
 
   # Tabla auxiliar que relaciona cada "parameter" con su ángulo
   angle_df <- tibble(parameter = var_names,
@@ -81,9 +75,7 @@ ggspider <- function(data,
     dplyr::mutate(group = rep(unique(spider_coords$group),
                               each = n_axis + 1))
 
-  # ========================================
-  # 4. CÍRCULOS GUÍA DE REFERENCIA
-  # ========================================
+  # 4. Círculos guía de referencia =========
 
   circle_coords <- function(r) {
     tibble(
@@ -97,9 +89,7 @@ ggspider <- function(data,
   ticks <- seq(min_value, max_value, length.out = ticks + 1)
   background_grid <- purrr::map_df((ticks - min_value) / (max_value - min_value) + central_distance, circle_coords)
 
-  # ========================================
-  # 5. ETIQUETAS DE LAS VARIABLES (en los extremos de cada eje)
-  # ========================================
+  # 5. Etiquetas de variables ==============
 
   axis_labels <- tibble(
     angle = angles,
@@ -118,9 +108,7 @@ ggspider <- function(data,
       )
     )
 
-  # ========================================
-  # 6. CONSTRUCCIÓN DEL GRÁFICO
-  # ========================================
+  # 6. Ploteo ==============================
 
   ggplot() +
 

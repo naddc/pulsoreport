@@ -1,6 +1,7 @@
 #' Función para imprimir plot y elementos en word.
+#' @keywords internal
 
-png <- function(ggobj,
+ppng <- function(ggobj,
                 fig.width = 6,
                 fig.height = NULL) {
   if (!is.list(ggobj) || is.null(ggobj$plot)) {

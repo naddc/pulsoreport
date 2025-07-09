@@ -27,7 +27,7 @@ plot_torta_2 <- function(data,
   output_type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
   if (is.null(output_type)) output_type <- "docx"  # o "docx", según lo que uses por defecto
 
-  # 1. Tabular ----
+  # ============== 1. Tabular ==============
   p <- data %>%
     sjlabelled::as_label() %>%
     dplyr::filter(!is.na({{var}})) %>%
@@ -44,7 +44,7 @@ plot_torta_2 <- function(data,
 
   n_total <- sum(!is.na(data[[rlang::as_name(rlang::enquo(var))]]))
 
-  # 2. Plotear ----
+  # ============== 2. Plotear ==============
   colores <- colorRampPalette(paleta)
 
   p <- p %>%
@@ -96,8 +96,7 @@ plot_torta_2 <- function(data,
     #                plot.background = element_rect(fill = 'transparent', colour = NA)) +
     # ggplot2::scale_fill_manual(values = c('#9DC3E6', '#336699'))
 
-  # 3. Configurar título, subtítulo y nota de pie ----
-
+  # = 3. Configurar título, n, footnote ====
   if (title.pos == 'top') {
     p <- p +
       ggplot2::labs(title =
@@ -175,6 +174,7 @@ plot_torta_2 <- function(data,
     title <- attributes(data[[rlang::as_name(rlang::enquo(var))]])$label
   }
 
+  # ========== 4. Render final =============
   if (output_type == 'docx') {
     return(list(
       plot = p,

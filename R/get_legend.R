@@ -1,4 +1,5 @@
 #' solución de @teunbrand
+#' @keywords internal
 
 get_legend <- function(plot, legend = NULL) {
 

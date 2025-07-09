@@ -1,6 +1,7 @@
 #' Función para añadir bordes a ggobjects para pruebas.
 #'
 #' Helper para agregar borde de depuración
+#' @keywords internal
 
 add_border <- function(grob, color = "red") {
   grid::grobTree(

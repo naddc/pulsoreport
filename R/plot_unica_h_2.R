@@ -43,7 +43,8 @@ plot_unica_h_2 <- function(data = NULL,
   output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
   if (is.null(output_type)) output_type <- "docx"
 
-  # 1. Tabular y calcular Ns ------------------------------------------------
+  # ====== 1. Tabular y calcular Ns ========
+
   if (!is.null(data)) {
     var_sym <- rlang::enquo(vars)
     var_name <- rlang::as_name(var_sym)
@@ -210,8 +211,9 @@ plot_unica_h_2 <- function(data = NULL,
     display <- 'stacked'
   }
 
-  # 2. Plotear --------------------------------------------------------------
-  ## 2.1. simple ------------------------------------------------------------
+  # ============== 2. Plotear ==============
+
+  ## 2.1. simple ---------------------------
 
   if (!is.null(data) && display == 'simple') {
 
@@ -715,7 +717,7 @@ plot_unica_h_2 <- function(data = NULL,
         panel.background = element_rect(fill = 'transparent', color = NA))
   }
 
-  # 3. Añadir notal al pie --------------------------------------------------
+  # ======== 3. Añadir notal al pie ========
 
   if (output_type == "docx") {
     show_notes <- FALSE
@@ -802,7 +804,7 @@ plot_unica_h_2 <- function(data = NULL,
         panel.background = element_rect(fill = 'transparent', color = NA))
   }
 
-  # 4. Render final ------------------------------------------------------------
+  # ========== 4. Render final =============
   final_plot <- final_plot &
     theme(
       panel.background = element_blank(),
@@ -816,8 +818,6 @@ plot_unica_h_2 <- function(data = NULL,
     )
 
   ## Título automático
-
-  # Generar título automático solo si no se ha especificado manualmente
   if (is.null(data) && is.null(title)) {
     labels_vars <- vars %>%
       purrr::imap(function(var_list, publico) {
@@ -840,7 +840,7 @@ plot_unica_h_2 <- function(data = NULL,
     }
     if (display == 'stacked') {
       n_columnas <- max(length(unique(tab_final$control)), length(unique(tab_final$group)))
-      }
+    }
 
     return(list(
       plot = p_fixed,

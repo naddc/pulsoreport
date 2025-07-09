@@ -9,3 +9,4 @@ add_border(grob, color = "red")
 \description{
 Helper para agregar borde de depuración
 }
+\keyword{internal}

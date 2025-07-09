@@ -39,3 +39,4 @@ Un objeto ggplot que puede ser exportado como dml o png.
 \description{
 Genera un gráfico de tipo radar o araña con valores absolutos. A partir de https://towardsdatascience.com/how-to-make-a-spider-chart-in-r-using-ggplot2-85a4f1898cab/
 }
+\keyword{internal}

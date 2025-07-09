@@ -9,3 +9,4 @@ get_legend(plot, legend = NULL)
 \description{
 solución de @teunbrand
 }
+\keyword{internal}
