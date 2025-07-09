@@ -21,9 +21,16 @@
 #' @param show_n Define si se mostrará el N como subtítulo (si TRUE). FALSE por defecto.
 #' @return Un objeto ggplot que puede ser exportado como dml.
 #' @export
-plot_unica_v <- function(data, var, group = NULL, order_freq = FALSE,
-                         title = NULL, unit = NULL, x_labels = TRUE,
-                         show_notes = FALSE, show_n = FALSE) {
+
+plot_unica_v <- function(data,
+                         var,
+                         group = NULL,
+                         order_freq = FALSE,
+                         title = NULL,
+                         unit = NULL,
+                         x_labels = TRUE,
+                         show_notes = FALSE,
+                         show_n = FALSE) {
 
   # 1. Crear tabla con los nombres de la variable elegida ----
   tab <- data %>%

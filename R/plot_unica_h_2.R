@@ -26,21 +26,22 @@
 #' @return Un objeto ggplot que puede ser exportado como dml.
 #' @export
 
-plot_unica_h <- function(data = NULL,
-                         vars,
-                         levels = NULL,
-                         order_freq = FALSE,
-                         group = NULL,
-                         display = 'simple',
-                         title = NULL,
-                         unit = NULL,
-                         unit_extra = TRUE,
-                         x_labels = TRUE,
-                         labels_width = 30,
-                         ancho = 0.7,
-                         show_notes = FALSE,
-                         show_n = FALSE) {
+plot_unica_h_2 <- function(data = NULL,
+                           vars,
+                           levels = NULL,
+                           order_freq = FALSE,
+                           group = NULL,
+                           display = 'simple',
+                           title = NULL,
+                           unit = NULL,
+                           unit_extra = TRUE,
+                           x_labels = TRUE,
+                           labels_width = 30,
+                           ancho = 0.8, # 0.7
+                           show_notes = FALSE,
+                           show_n = FALSE) {
   output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
+  if (is.null(output_type)) output_type <- "docx"
 
   # 1. Tabular y calcular Ns ------------------------------------------------
   if (!is.null(data)) {
@@ -48,16 +49,16 @@ plot_unica_h <- function(data = NULL,
     var_name <- rlang::as_name(var_sym)
 
     # Etiquetar solo la variable
-    data <- data %>%
+    data_etiquetada <- data %>%
       dplyr::mutate(!!var_name := sjlabelled::as_label(!!var_sym))
 
     # Obtener levels
     if (is.null(levels)) {
-      levels <- sjlabelled::get_labels(dplyr::pull(data, !!var_sym), values = "n") %>% unname()
+      levels <- sjlabelled::get_labels(dplyr::pull(data_etiquetada, !!var_sym), values = "n") %>% unname()
     }
 
     # Tabular
-    tab <- data %>%
+    tab_final <- data_etiquetada %>%
       sjlabelled::as_label() %>%
       dplyr::filter(!is.na(!!var_sym)) %>%
       dplyr::count(!!var_sym) %>%
@@ -74,11 +75,11 @@ plot_unica_h <- function(data = NULL,
       dplyr::mutate(prop = 100 * n / sum(n))
 
     # Calcular N
-    n_total <- sum(!is.na(data[[rlang::as_string(ensym(vars))]]))
+    n_total <- sum(!is.na(data_etiquetada[[rlang::as_string(ensym(vars))]]))
 
     # Definir título
     if (is.null(title)) {
-      etiqueta <- attributes(data[[rlang::as_string(ensym(vars))]])$label
+      etiqueta <- attributes(data_etiquetada[[rlang::as_string(ensym(vars))]])$label
       if (is.null(etiqueta)) {
         title <- 'Título'
       } else {
@@ -86,6 +87,7 @@ plot_unica_h <- function(data = NULL,
       }
     }
   }
+
   if (is.null(data) && is.list(vars)) {
     tablas <- list()
     etiquetas <- list()
@@ -202,23 +204,37 @@ plot_unica_h <- function(data = NULL,
     tab_final$control <- factor(tab_final$control, levels = orden_control_wrapped)
 
     display <- 'stacked'
-
-    if (length(unique(tab_final$group)) <= 1) {
-      x_labels <- FALSE
-    }
   }
 
   # 2. Plotear --------------------------------------------------------------
+  ## 2.1. simple ------------------------------------------------------------
 
   if (!is.null(data) && display == 'simple') {
 
-    p <- ggplot2::ggplot(data = tab,
+    p <- ggplot2::ggplot(data = tab_final,
                          aes(x = if (!rlang::quo_is_null(enquo(group))) {{group}} else {{ vars }},
                              y = prop,
                              fill = if (!rlang::quo_is_null(enquo(group))) {{ vars }} else NULL)) +
-      ggplot2::labs(title = if (output_type == "docx" || is.null(title)) NULL else stringr::str_wrap(title, width = 30)) +
-      ggplot2::theme_void() +
+      ggplot2::scale_x_discrete(labels = NULL,
+                                expand = expansion(add = c(0.7, 0.7))) +
+      ggplot2::scale_y_continuous(limits = c(0, 100),
+                                  breaks = seq(0, 100, by = 25),
+                                  labels = c('0', '25', '50', '75', '100 (%)'),
+                                  expand = c(0, 0)) +
+      ggplot2::labs(title = if (output_type == "docx" || is.null(title)) NULL
+                    else stringr::str_wrap(title, width = 30)) +
+      ggplot2::theme_minimal() +
       ggplot2::theme(
+        axis.line.x = element_line(colour = "#cccccc",
+                                 size = 0.3),
+        axis.text.x = element_text(color = "#cccccc",
+                                   size = 7),
+        axis.ticks.x.bottom = element_line(color = "#cccccc",
+                                           linewidth = 0.3),
+        axis.line.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.title = element_blank(),
         plot.title = element_text(size = 16,
                                   color = "#002060",
                                   face = "bold",
@@ -235,7 +251,7 @@ plot_unica_h <- function(data = NULL,
         ggplot2::geom_col(width = 0.8, position = 'stack', color = "white") +
         ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), "%")),
                            position = position_stack(vjust = 0.5),
-                           size = 12/2.845,
+                           size = if (output_type == "docx") 9*0.35 else 12*0.35,
                            color = "#FFFFFF",
                            family = "Arial",
                            fontface = "bold")  +
@@ -257,34 +273,70 @@ plot_unica_h <- function(data = NULL,
       if (isTRUE(x_labels)) {
         p <- p +
           ggplot2::theme(
-            axis.text.y = element_text(size = 12),
+            axis.text.y = element_text(size = if (output_type == "docx") 9 else 12,
+                                       color = "#002060",
+                                       family = "Arial"),
             text = element_text(color = "#002060",
                                 family = "Arial")) +
           ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = labels_width))
+
       }
     }
     else {
-      ymid <- (max(tab$prop) - min(tab$prop))/6
+      ymid <- (max(tab_final$prop) - min(tab_final$prop))/6
       p <- p +
         ggplot2::geom_col(width = ancho, fill = '#336699') +
         ggplot2::geom_text(aes(label = paste0(janitor::round_half_up(prop), "%")),
-                           hjust = ifelse(tab$prop < ymid, -1, 0.5),
-                           color = ifelse(tab$prop < ymid, "#002060", "#FFFFFF"),
+                           hjust = ifelse(tab_final$prop < ymid, -1.5, 0.5),
+                           color = ifelse(tab_final$prop < ymid, "#002060", "#FFFFFF"),
                            position = position_stack(vjust = 0.5),
-                           size = 4.2,
+                           size = if (output_type == "docx") 9*0.35 else 12*0.35,
                            family = "Arial",
                            fontface = "bold")  +
         ggplot2::coord_flip()
 
       if (isTRUE(x_labels)) {
-        p <- p +
-          ggplot2::theme(
-            axis.text.y = element_text(size = 12),
-            text = element_text(color = "#002060",
-                                family = "Arial")) +
-          ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = labels_width))
+        label_df <- tab_final %>%
+          dplyr::select(label = {{ var_name }}) %>%
+          dplyr::distinct() %>%
+          dplyr::mutate(label = factor(label, levels = rev(unique(label))))
+
+        y_label_plot <- ggplot(label_df, aes(x = 1, y = label)) +
+          geom_text(aes(label = label),
+                    hjust = 1,
+                    color = "#002060",
+                    size = 9 * 0.35,
+                    family = "Arial") +
+          scale_y_discrete(limits = levels(label_df$label),
+                           expand = expansion(add = c(1.6, 1))) +
+          scale_x_continuous(limits = c(0, 1),
+                             expand = c(0, 0)) +
+          coord_cartesian(clip = "off") +
+          theme_void() +
+          theme(plot.margin = margin(b = 0, t = 0))
+
+        y_label_grob <- ggplotGrob(y_label_plot)
+      } else {
+        y_label_grob <- grid::nullGrob()
       }
+
+      p <- gridExtra::arrangeGrob(
+        y_label_grob,
+        p,
+        # add_border(y_label_grob, "blue"),
+        # add_border(ggplotGrob(p), "red"),
+        ncol = 2,
+        widths = unit.c(
+          unit(2, "cm"),
+          unit(8, "cm"))
+      )
+
+      p <- gridExtra::arrangeGrob(p, ncol = 1)
+      grid::grobTree(p, vp = viewport(gp = gpar(fill = 'transparent')))
+
+      final_plot <- ggpubr::as_ggplot(p)
     }
+
     if (isTRUE(show_n)) {
       p <- p + ggplot2::labs(subtitle = paste('N =', n_total)) +
         ggplot2::theme(plot.subtitle = element_text(size = 10,
@@ -294,8 +346,11 @@ plot_unica_h <- function(data = NULL,
                                                     hjust = 1,
                                                     vjust = 0))
     }
-    final_plot <- p
+
   }
+
+  ## 2.2. apilada -----------------------------------------------------------
+
   else if (is.null(data) && is.list(vars) && display == 'stacked') {
     if (length(unique(tab_final$control)) > 1) {
 
@@ -304,71 +359,113 @@ plot_unica_h <- function(data = NULL,
       plots_list <- purrr::map(control_levels, function(ctrl) {
         df_ctrl <- tab_final %>% filter(control == ctrl)
 
-        p <- ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
-          geom_col(position = 'stack', width = if (length(unique(df_ctrl$group)) == 1) 0.4 else ancho) +
+        p <- ggplot2::ggplot(df_ctrl, aes(x = group, y = Freq, fill = Var1)) +
+          geom_col(position = 'stack',
+                   width = if (length(unique(df_ctrl$group)) == 1) 0.4 else 0.7 # ancho
+                   ) +
           geom_text_repel(
             aes(label = paste0(janitor::round_half_up(Freq), '%')),
             position = ggpp::position_stacknudge(vjust = 0.5),
-            size = 4.93,
+            size = if (output_type == "docx") 9*0.35 else 14*0.35,
             color = '#ffffff',
             family = 'Arial',
             fontface = 'bold',
             direction = 'x',
             point.size = NA,
-            box.padding = 0
-          ) +
+            box.padding = 0) +
           coord_flip() +
           scale_fill_manual(values = colores) +
           scale_y_reverse() +
           scale_x_discrete(
-            labels = function(x) str_wrap(x, width = 60),
-            expand =  if (length(unique(df_ctrl$group)) == 1) expansion(mult = c(0.5, 0.5)) else expansion(mult = c(0.4, 0.4))
-          ) +
+            labels = NULL,
+            expand =
+              if (output_type == 'docx') c(0, 0)
+            else if (length(unique(df_ctrl$group)) == 1) expansion(mult = c(0.5, 0.5))
+            else expansion(mult = c(0.4, 0.4))) +
           theme_void() +
           theme(
             axis.ticks.y = element_blank(),
             legend.position = 'none',
-            plot.margin = margin(t = -10)
-          )
+            plot.margin = margin(t = if (output_type == 'docx') 0 else -10))
 
         if (length(unique(tab_final$group)) <= 1) {
           x_labels <- FALSE
         }
 
-        if (isTRUE(x_labels)) {
-          p <- p +
-            ggplot2::theme(
-              axis.text.y = element_text(size = 12,
-                                         margin = margin(r = 10),
-                                         family = 'Arial',
-                                         color = '#002060')
-            )
-        }
         p
-      })
 
       # Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
       aligned <- cowplot::align_plots(plotlist = plots_list, align = 'v', axis = 'l')
 
-      plots_with_titles <- purrr::map2(control_levels, aligned, function(ctrl, aligned_plot) {
+      # plots_with_titles <- purrr::map2(control_levels, aligned, function(ctrl, aligned_plot) {
         text_label <- textGrob(
           ctrl,
           x = 0.4,
           gp = gpar(
-            fontsize = 13,
+            fontsize = if (output_type == "docx") 9 else 13,
             fontfamily = 'Arial',
             col = '#002060',
-            fontface = if (isTRUE(x_labels)) 'bold' else 'plain',
+            fontface = 'bold',
             lineheight = 0.8
           )
         )
 
+        # Etiquetas de eje Y como mini plot si x_labels = TRUE
+        if (isTRUE(x_labels)) {
+          label_df <- data.frame(group = rev(unique(df_ctrl$group)))
+
+          y_label_plot <- ggplot(label_df, aes(x = 1, y = group)) +
+            geom_text(aes(label = group),
+                      hjust = 0.5,
+                      color = "#002060",
+                      size = if (output_type == "docx") 8 * 0.35 else 12 * 0.35,
+                      family = "Arial",
+                      fontface = if (output_type == "docx") 'bold' else 'plain') +
+            scale_y_discrete(
+              limits = rev(unique(df_ctrl$group)),
+              expand = expansion(mult = c(0.4, 0.4))) +
+            scale_x_discrete(
+              expand = if (length(unique(df_ctrl$group)) <= 1)
+                expansion(mult = c(0.5, 0.5)) else expansion(mult = c(0.4, 0.4))) +
+            theme_void() +
+            theme(plot.margin = margin(
+              t = if (length(unique(df_ctrl$group)) == 2) 0 else -10,
+              b = if (length(unique(df_ctrl$group)) == 2) 0 else -10))
+
+          y_label_grob <- ggplotGrob(y_label_plot)
+        } else {
+          y_label_grob <- grid::nullGrob()
+        }
+
         # Combinar todo en arranged
-        arranged <- arrangeGrob(
-          text_label, aligned_plot,
-          ncol = 2,
-          widths = unit.c(unit(9, 'cm'), unit(20, 'cm'))
-        )
+        arranged <-
+          gridExtra::arrangeGrob(
+            text_label,
+            y_label_grob,
+            aligned_plot,
+            grid::nullGrob(),
+            ncol = 4,
+            widths = unit.c(
+              unit(if (output_type == "docx" &&
+                       length(unique(tab_final$control)) == 1) 0.01    # Título
+                   else if (output_type == "docx" &&
+                            length(unique(tab_final$control)) > 1) 6.49
+                   else if (length(vars) <= 1) 11.99
+                   else 8.5, 'cm'),
+              unit(if (output_type == "docx" &&
+                       isTRUE(x_labels)) 3.49                          # Y labels
+                   else if (length(vars) <= 1) 0.01
+                   else 4, 'cm'),
+              unit(if (output_type == "docx" &&
+                       length(unique(tab_final$control)) == 1) 9.5       # Plot
+                   else if (output_type == "docx" &&
+                            length(unique(tab_final$control)) > 1) 6.5
+                   else if (length(vars) <= 1) 17
+                   else 17, 'cm'),
+              unit(if (output_type == "docx") 2                         # T2B
+                   else 2.5, 'cm')
+            )
+          )
 
         # Envolver para fondo transparente
         grobTree(arranged, vp = viewport(gp = gpar(fill = 'transparent')))
@@ -378,16 +475,14 @@ plot_unica_h <- function(data = NULL,
       n_barras <- sapply(control_levels, function(ctrl) {
         length(unique(tab_final$group[tab_final$control == ctrl]))
       })
-
       n_barras_ajustado <- sapply(n_barras, function(n) {
         if (n <= 1) 1 else 1 + (n - 2)^1.2
       })
-
       n_barras_ajustado <- n_barras_ajustado / sum(n_barras_ajustado) * 6
       n_barras_ajustado <- pmin(n_barras_ajustado, 5)
 
       # Combinar todos los gráficos
-      plots_combined <- patchwork::wrap_plots(plots_with_titles,
+      plots_combined <- patchwork::wrap_plots(plots_list,
                                               ncol = 1,
                                               heights = n_barras_ajustado)
       plots_combined <- patchwork::wrap_plots(plots_combined,
@@ -398,46 +493,56 @@ plot_unica_h <- function(data = NULL,
 
     }
     else{
+      tab_final$Var1 <- factor(tab_final$Var1, levels = rev(sort(unique(tab_final$Var1))))
+
       p <- ggplot2::ggplot(data = tab_final,
                            ggplot2::aes(x = group, y = Freq, fill = Var1)) +
         ggplot2::geom_col(
           position = 'stack',
-          width = ancho) +
+          width = if (output_type == "docx" && length(unique(tab_final$group)) == 1) 1
+          else if (length(unique(tab_final$group)) == 1) 0.5
+          else 0.7
+          ) +
         ggrepel::geom_text_repel(ggplot2::aes(label = paste0(janitor::round_half_up(Freq), '%')),
                                  position = ggpp::position_stacknudge(vjust = 0.5),
-                                 size = 4.93,
+                                 size = if (output_type == "docx") 9*0.35 else 14*0.35,
                                  color = '#ffffff',
                                  family = 'Arial',
                                  fontface = 'bold',
                                  direction = 'x',
                                  point.size = NA,
                                  box.padding = 0) +
-        ggh4x::force_panelsizes(total_width = ggplot2::unit(9, 'in')
-                                # ,
-                                # total_height = ggplot2::unit(4.5, 'in')
-        ) +
-        ggplot2::theme_void() +
-        ggplot2::theme(
-          axis.text.y = ggplot2::element_text(size = 12,
-                                              margin = ggplot2::margin(r = 20)),
-          text = ggplot2::element_text(color = '#002060',
-                                       family = 'Arial'),
-          legend.position = 'none') +
-        ggplot2::scale_y_reverse()
-      if (length(unique(tab_final$group)) <= 1) {
-        x_labels <- FALSE
-      }
-      if (isTRUE(x_labels)) {
-        p <- p +
-          ggplot2::theme(
-            axis.text.y = ggplot2::element_text(size = 12),
-            text = ggplot2::element_text(color = "#002060",
-                                         family = "Arial")) +
-          ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 60))
-      }
-      p <- p +
+        ggplot2::coord_flip() +
         ggplot2::scale_fill_manual(values = colores) +
-        ggplot2::coord_flip()
+        ggplot2::scale_x_discrete(labels = NULL,
+                                  expand = c(0, 0)) +
+        ggplot2::scale_y_continuous(limits = c(0, 100.1),
+                                    expand = c(0, 0)) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          legend.position = 'none',
+          # plot.margin = margin(
+          #   t = if (output_type == "docx") 4
+          #   else if (length(unique(tab_final$group)) == 2) 0 else -10,
+          #   b = if (length(unique(tab_final$group)) == 2 |
+          #           output_type == "docx") 0
+          #   else -10)
+          #
+          plot.margin = margin(
+            t = if (output_type == "docx") -3
+            else if (length(unique(tab_final$group)) == 2) 0
+            else -10,
+            b = if (output_type == "docx") -3
+            else if (length(unique(tab_final$group)) == 2) 0
+            else -10)
+        )
+
       if (isTRUE(show_n)) {
         n_labels <- tab_final %>%
           group_by(group) %>%
@@ -457,36 +562,108 @@ plot_unica_h <- function(data = NULL,
             inherit.aes = FALSE)
       }
 
-      p_grob <- ggplot2::ggplotGrob(p)
-      p_grob$widths[[which(p_grob$layout$name == "axis-l")]] <- ggplot2::unit(1, "cm")
-      p <- ggpubr::as_ggplot(p_grob)
+      p <- ggplotGrob(p)
+
+      # Título del ítem
+      text_label <- if (output_type == "docx" && length(unique(tab_final$control)) == 1) {
+        grid::nullGrob()
+      } else {
+        grid::textGrob(
+          ctrl,
+          x = 1,
+          just = 'right',
+          gp = gpar(
+            fontsize = if (output_type == "docx") 7
+            else if (length(vars) <= 1) 12
+            else 13,
+            fontfamily = 'Arial',
+            col = '#002060',
+            fontface = if (output_type == "docx") 'bold'
+            else if (isTRUE(x_labels)) 'bold'
+            else 'plain',
+            lineheight = 0.8
+          )
+        )
+      }
+
+      if (isTRUE(x_labels)) {
+        label_df <- data.frame(group = rev(unique(tab_final$group)))
+
+        y_label_plot <- ggplot(label_df, aes(x = 1, y = group)) +
+          geom_text(aes(label = group),
+                    hjust = 1,
+                    color = "#002060",
+                    size = if (output_type == "docx") 8*0.35 else 12*0.35,
+                    fontface = if (output_type == "docx") 'bold' else 'plain',
+                    family = "Arial") +
+          scale_y_discrete(
+            limits = rev(unique(tab_final$group)),
+            # expand = if (length(tab_final$group) > 1) expansion(add = c(0.9, 0.7)) else expansion(add = c(0, 0))) +
+            expand = if (length(tab_final$group) > 1) expansion(add = c(0.3, 0.3)) else expansion(add = c(0, 0))) +
+            # expand = expansion(add = c(0.7, 0.8))) +
+          scale_x_continuous(
+            limits = c(0, 1),
+            expand = expansion(mult = c(0.2, 0.2))) +
+          coord_cartesian(clip = "off") +
+          theme_void() +
+          theme(plot.margin = margin(
+            t = if (output_type == "docx") 0
+            else if (length(unique(tab_final$group)) == 2) 0
+            else -10,
+            b = if (output_type == "docx") 0
+            else if (length(unique(tab_final$group)) == 2) 0
+            else -10)
+          )
+        y_label_grob <- ggplotGrob(y_label_plot)
+      } else {
+        y_label_grob <- grid::nullGrob()
+      }
+
+      p <-
+        gridExtra::arrangeGrob(
+          text_label,
+          y_label_grob,
+          p,
+          grid::nullGrob(),
+          # add_border(text_label, "blue"),
+          # add_border(y_label_grob, "green"),
+          # add_border(p, "orange"),
+          # add_border(grid::nullGrob(), "purple"),
+          ncol = 4,
+          widths = unit.c(
+            unit(if (output_type == "docx" &&
+                     length(unique(tab_final$control)) == 1) 0.01    # Título
+                 else if (output_type == "docx" &&
+                          length(unique(tab_final$control)) > 1) 6.49
+                 else if (length(vars) <= 1) 11.99
+                 else 8.5, 'cm'),
+            unit(if (output_type == "docx" &&
+                     isTRUE(x_labels)) 3.49                          # Y labels
+                 else if (length(vars) <= 1) 0.01
+                 else 4, 'cm'),
+            unit(if (output_type == "docx" &&
+                     length(unique(tab_final$control)) == 1) 9.5       # Plot
+                 else if (output_type == "docx" &&
+                          length(unique(tab_final$control)) > 1) 6.5
+                 else if (length(vars) <= 1) 17
+                 else 17, 'cm'),
+            unit(if (output_type == "docx") 2                         # T2B
+                 else 2.5, 'cm')
+          )
+        )
+
+      # Envolver para fondo transparente
+      p <- gridExtra::arrangeGrob(p, ncol = 1)
+      grobTree(p, vp = viewport(gp = gpar(fill = 'transparent')))
+      p <- patchwork::wrap_plots(p,
+                                 ncol = 1,
+                                 heights = c(6))
     }
+
     # Añadir leyenda
-    # solución de @teunbrand
-    get_legend <- function(plot, legend = NULL) {
-
-      gt <- ggplot2::ggplotGrob(plot)
-
-      pattern <- 'guide-box'
-      if (!is.null(legend)) {
-        pattern <- paste0(pattern, '-', legend)
-      }
-
-      indices <- grep(pattern, gt$layout$name)
-
-      not_empty <- !vapply(
-        gt$grobs[indices],
-        inherits, what = 'zeroGrob',
-        FUN.VALUE = logical(1)
-      )
-      indices <- indices[not_empty]
-
-      if (length(indices) > 0) {
-        return(gt$grobs[[indices[1]]])
-      }
-      return(NULL)
-    }
     # Plot dummy para extraer leyenda
+    tab_final$Var1 <- factor(tab_final$Var1, levels = rev(sort(unique(tab_final$Var1))))
+
     legend_plot <- ggplot2::ggplot(tab_final, ggplot2::aes(x = group, y = Freq, fill = Var1)) +
       ggplot2::geom_col(position = 'stack') +
       ggplot2::coord_flip() +
@@ -496,10 +673,14 @@ plot_unica_h <- function(data = NULL,
       ggplot2::theme(
         legend.position = 'bottom',
         legend.title = ggplot2::element_blank(),
-        legend.text = ggplot2::element_text(size = 10.5, color = '#002060', family = 'Arial'),
-        legend.key.size = ggplot2::unit(0.4, 'cm'),
-        legend.margin = ggplot2::margin(l = 20, b = 10)
-      ) +
+        legend.text = element_text(size = if (output_type == "docx") 7 else 10.5,
+                                   color = '#002060',
+                                   family = 'Arial'),
+        legend.key.size = unit(if (output_type == "docx") 0.3 else 0.4, 'cm'),
+        legend.margin = margin(l = 20,
+                               t = 0,
+                               b = if (output_type == "docx") 0 else 10)) +
+        # legend.margin = ggplot2::margin(l = 20, b = 10)) +
       ggplot2::guides(shape = ggplot2::guide_legend(position = 'bottom'))
 
     legend_grob <- get_legend(legend_plot)
@@ -511,14 +692,14 @@ plot_unica_h <- function(data = NULL,
 
     final_plot <- p / legend_patch +
       patchwork::plot_layout(ncol = 1,
-                             heights = c(5, 1))
+                             heights = c(6, 1))
 
     # Aplicar tema general
     final_plot <- final_plot +
       patchwork::plot_annotation(
         theme = ggplot2::theme(
           plot.margin = ggplot2::margin(t = if (output_type == "docx") 0 else 100,
-                                        b = -15))) &
+                                        b = if (output_type == "docx") 0 else -15))) &
       ggplot2::theme(
         plot.background = element_rect(fill = 'transparent', color = NA),
         panel.background = element_rect(fill = 'transparent', color = NA))
@@ -529,25 +710,32 @@ plot_unica_h <- function(data = NULL,
   }
 
   # 3. Añadir notal al pie --------------------------------------------------
+
+  if (output_type == "docx") {
+    show_notes <- FALSE
+  }
+
+  if (!is.null(data)) {
+  nombre_data <- if (deparse(substitute(data)) == ".") {
+    deparse(sys.call(-1)[[2]])
+  } else {
+    deparse(substitute(data))  # Si no está en un pipe, captura normal
+  }
+
+  if (is.null(unit) && !is.null(data)) {
+    unit <- if (paste0(nombre_data, "_unit") %in% names(params)) {
+      params[[paste0(nombre_data, "_unit")]]
+    }
+    else if (!is.null(unit) && !is.null(data)) {
+      unit
+    }
+    else {
+      'participantes'
+    }
+  }
+  }
+
   if(isTRUE(show_notes)) {
-    nombre_data <- if (deparse(substitute(data)) == ".") {
-      deparse(sys.call(-1)[[2]])
-    } else {
-      deparse(substitute(data))  # Si no está en un pipe, captura normal
-    }
-
-    if (is.null(unit) && !is.null(data)) {
-      unit <- if (paste0(nombre_data, "_unit") %in% names(params)) {
-        params[[paste0(nombre_data, "_unit")]]
-      }
-      else if (!is.null(unit) && !is.null(data)) {
-        unit
-      }
-      else {
-        'participantes'
-      }
-    }
-
     if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
       if (exists('n_totales') && is.null(data)) {
         n_totales <- paste(n_totales, params[['unit_extra']])
@@ -560,11 +748,12 @@ plot_unica_h <- function(data = NULL,
     # Texto izquierdo (con lineheight)
     footer_izq <- ggplot2::ggplot() +
       ggplot2::geom_text(
-        ggplot2::aes(x = -0.06, y = 0, label = stringr::str_wrap(paste("Base:",
-                                                                       if (exists("n_totales")) n_totales else "",
-                                                                       if (exists("n_total")) n_total else "",
-                                                                       if (exists("unit")) unit else ""),
-                                                                 width = 67)),
+        ggplot2::aes(x = -0.06, y = 0,
+                     label = stringr::str_wrap(paste("Base:",
+                                                     if (exists("n_totales")) n_totales else "",
+                                                     if (exists("n_total")) n_total else "",
+                                                     if (exists("unit")) unit else ""),
+                                               width = 67)),
         hjust = 0, family = "Arial", size = 3.5, fontface = "bold",
         color = "#002060", lineheight = 0.85
       ) +
@@ -605,9 +794,6 @@ plot_unica_h <- function(data = NULL,
       ggplot2::theme(
         plot.background = element_rect(fill = 'transparent', color = NA),
         panel.background = element_rect(fill = 'transparent', color = NA))
-
-    # final_plot <- final_plot / footer_plot +
-    #   patchwork::plot_layout(nrow = 3, heights = c(5, 1, 0.4))
   }
 
   # 4. Render final ------------------------------------------------------------
@@ -623,16 +809,55 @@ plot_unica_h <- function(data = NULL,
       panel.background = ggplot2::element_rect(fill = 'transparent', color = NA)
     )
 
+  ## Título automático
+
+  # Generar título automático solo si no se ha especificado manualmente
+  if (is.null(data) && is.null(title)) {
+    labels_vars <- vars %>%
+      purrr::imap(function(var_list, publico) {
+        purrr::map_chr(var_list, ~ attr(get(publico)[[.x]], "label") %||% NA_character_)
+      }) %>%
+      unlist(use.names = FALSE)
+
+    labels_validos <- labels_vars[!is.na(labels_vars)]
+
+    if (length(labels_validos) > 0 && length(unique(labels_validos)) == 1) {
+      title <- unique(labels_validos)
+    } else {
+      title <- "Título"
+    }
+  }
+
   if (output_type == "docx") {
+    if (display == 'simple') {
+      n_columnas <- length(unique(tab_final[[rlang::as_name(rlang::ensym(vars))]]))
+    }
+    if (display == 'stacked') {
+      n_columnas <- max(length(unique(tab_final$control)), length(unique(tab_final$group)))
+      }
+
     return(list(
       plot = p_fixed,
-      cap = if (!is.null(title) && is.character(title)) title else NULL,
+      cap =
+        if (!is.null(title) && is.character(title))
+          if (exists("unit") && unique(length(tab_final$group)) == 1)
+            paste0(title, ", ", unit)
+      else
+        title
+      else
+        NULL,
       N = paste0("N = ",
-                 if (exists("n_totales")) n_totales else if (exists("n_total")) n_total
-      )
-    ))
+                 if (exists("n_totales")) n_totales else "",
+                 if (exists("n_total")) n_total else "",
+                 if (!is.null(unit)) paste0(' ', unit) else ""
+      ),
+      height =
+        if (display == 'simple') 0.003333*n_columnas^2+0.27167*n_columnas+0.54
+      else if (display == 'stacked') 0.01*n_columnas^2+0.55*n_columnas+0.06
+    )
+    )
+
   } else if (output_type == "pptx") {
     return(p_fixed)
   }
-
 }

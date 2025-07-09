@@ -11,7 +11,7 @@ show_n <- function(data, var, unit = NULL, unit_extra = TRUE) {
   nombre_data <- if (deparse(substitute(data)) == ".") {
     deparse(sys.call(-1)[[2]])
   } else {
-    deparse(substitute(data))  # Si no está en un pipe, captura normal
+    deparse(substitute(data))
   }
 
   if (is.null(unit)) {
@@ -36,7 +36,6 @@ show_n <- function(data, var, unit = NULL, unit_extra = TRUE) {
     summarise(total = n()) %>%
     pull(total)
 
-
   # 3. Plotear
   ggplot() +
     theme_void() +
@@ -51,7 +50,5 @@ show_n <- function(data, var, unit = NULL, unit_extra = TRUE) {
       plot.caption.position = "plot") +
     labs(caption = c(str_wrap(paste('Base:', n_total, unit), width = 80),
                      "Los porcentajes están redondeados y pueden no sumar 100%"))
-
-
 
   }
