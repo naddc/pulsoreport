@@ -68,7 +68,11 @@ plot_unica_h_2 <- function(data = NULL,
           if (isTRUE(order_freq)) {
             forcats::fct_reorder(x, n)
           } else {
-            forcats::fct_rev(forcats::fct_relevel(x, levels))
+            # forcats::fct_relevel(x, levels)
+
+            forcats::fct_relevel(x, rev(levels))
+
+            # forcats::fct_rev(forcats::fct_relevel(x, levels))
           }
         }
       ) %>%
@@ -298,17 +302,19 @@ plot_unica_h_2 <- function(data = NULL,
       if (isTRUE(x_labels)) {
         label_df <- tab_final %>%
           dplyr::select(label = {{ var_name }}) %>%
-          dplyr::distinct() %>%
-          dplyr::mutate(label = factor(label, levels = rev(unique(label))))
+          dplyr::distinct()
+        # %>%
+        #   dplyr::mutate(label = factor(label, levels = unique(label)))
 
         y_label_plot <- ggplot(label_df, aes(x = 1, y = label)) +
-          geom_text(aes(label = label),
+          geom_text(aes(label = stringr::str_wrap(label, width = labels_width)),
                     hjust = 1,
+                    lineheight = 0.8,
                     color = "#002060",
                     size = 9 * 0.35,
                     family = "Arial") +
           scale_y_discrete(limits = levels(label_df$label),
-                           expand = expansion(add = c(1.6, 1))) +
+                           expand = expansion(add = c(1.45, 0.9))) +
           scale_x_continuous(limits = c(0, 1),
                              expand = c(0, 0)) +
           coord_cartesian(clip = "off") +
@@ -840,12 +846,9 @@ plot_unica_h_2 <- function(data = NULL,
       plot = p_fixed,
       cap =
         if (!is.null(title) && is.character(title))
-          if (exists("unit") && unique(length(tab_final$group)) == 1)
+          if (!is.null(data))
             paste0(title, ", ", unit)
-      else
-        title
-      else
-        NULL,
+      else title,
       N = paste0("N = ",
                  if (exists("n_totales")) n_totales else "",
                  if (exists("n_total")) n_total else "",
