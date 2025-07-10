@@ -1,5 +1,9 @@
 #' Función para imprimir plot y elementos en word.
-#' @keywords internal
+#'
+#' @param ggobj Objeto ggplot.
+#' @param fig.width description
+#' @param fig.height description
+#' @export
 
 ppng <- function(ggobj,
                 fig.width = 6,

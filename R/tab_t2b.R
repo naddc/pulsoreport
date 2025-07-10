@@ -5,12 +5,9 @@
 #' @import stringr
 #' @param data Un data frame con los datos en formato sav.
 #' @param vars Variable o variables para plotear.
-#' @param title Recibe un título para el gráfico. Si es NULL (opción por defecto), toma la etiqueta de la variable en vars.
-#' @param unit Unidad de observación para declarar el N de la base usada para el gráfico. Si es NULL (opción por defecto), toma el parámeto correspondiente al dataset en data ("data_unit") indicado en los params del yaml. Puede recibir un elemento directamente (no recomendado).
+#' @param labels_width description
 #' @param unit_extra Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.
-#' @param show_notes Define si se mostrarán las notas de pie de "N" y el mensaje sobre el redondeo (si TRUE). FALSE por defecto.
-#' @param show_n Define si se mostrará el N como subtítulo (si TRUE). FALSE por defecto.
-#' @return Un objeto ggplot que puede ser exportado como dml o png.
+#' @return Una tabla que puede ser exportada.
 #' @export
 
 tab_t2b <- function(data = NULL,

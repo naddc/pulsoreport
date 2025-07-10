@@ -12,6 +12,7 @@
 #' @param unit_extra Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.
 #' @return Un objeto ggplot que puede ser exportado como dml.
 #' @export
+
 plot_escala_gruppa <- function(vars, T2B = TRUE, unit_extra = TRUE) {
 
   tablas <- list()

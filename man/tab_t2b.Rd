@@ -11,18 +11,12 @@ tab_t2b(data = NULL, vars, labels_width = 30, unit_extra = FALSE)
 
 \item{vars}{Variable o variables para plotear.}
 
+\item{labels_width}{description}
+
 \item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
-
-\item{title}{Recibe un título para el gráfico. Si es NULL (opción por defecto), toma la etiqueta de la variable en vars.}
-
-\item{unit}{Unidad de observación para declarar el N de la base usada para el gráfico. Si es NULL (opción por defecto), toma el parámeto correspondiente al dataset en data ("data_unit") indicado en los params del yaml. Puede recibir un elemento directamente (no recomendado).}
-
-\item{show_notes}{Define si se mostrarán las notas de pie de "N" y el mensaje sobre el redondeo (si TRUE). FALSE por defecto.}
-
-\item{show_n}{Define si se mostrará el N como subtítulo (si TRUE). FALSE por defecto.}
 }
 \value{
-Un objeto ggplot que puede ser exportado como dml o png.
+Una tabla que puede ser exportada.
 }
 \description{
 Tabla para respuestas de Top Two Box

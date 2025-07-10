@@ -6,7 +6,13 @@
 \usage{
 ppng(ggobj, fig.width = 6, fig.height = NULL)
 }
+\arguments{
+\item{ggobj}{Objeto ggplot.}
+
+\item{fig.width}{description}
+
+\item{fig.height}{description}
+}
 \description{
 Función para imprimir plot y elementos en word.
 }
-\keyword{internal}
