@@ -42,8 +42,8 @@ plot_escala <- function(data,
 
     tab <- tab %>%
       dplyr::mutate(control = etiqueta,
-             Var1 = factor(Var1,
-                           levels = nivel_actual)) %>%
+                    Var1 = factor(Var1,
+                                  levels = nivel_actual)) %>%
       dplyr::arrange(Var1)
 
     tablas[[var]] <- tab # Almacenar la tabla y la etiqueta en la lista
@@ -162,7 +162,7 @@ plot_escala <- function(data,
     ggplot2::scale_fill_manual(values = colores) +
     ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 55)) +
     ggplot2::labs(caption = c(str_wrap(paste('Base:', n_total, unit), width = 80),
-                     'Los porcentajes están redondeados y pueden no sumar 100%'))
+                              'Los porcentajes están redondeados y pueden no sumar 100%'))
   if (isTRUE(T2B)) {
     # # Obtener los límites del eje Y
     # g <- ggplot2::ggplot_build(p)
@@ -173,20 +173,20 @@ plot_escala <- function(data,
     # y_pos <- y_max + (y_max - y_min) * 0.05  # Ajusta el 0.05 para mover más arriba o abajo
 
     p <- p + ggplot2::geom_text(data = T2B_df,
-                       aes(x = control, y = -10, label = Top2B),
-                       inherit.aes = FALSE,
-                       size = 4.55,
-                       color = '#548135',
-                       fontface = 'bold',
-                       family = 'Arial',
-                       hjust = 0) +
+                                aes(x = control, y = -10, label = Top2B),
+                                inherit.aes = FALSE,
+                                size = 4.55,
+                                color = '#548135',
+                                fontface = 'bold',
+                                family = 'Arial',
+                                hjust = 0) +
       ggplot2::labs(subtitle = 'TOP TWO BOX') +
       ggplot2::theme(plot.subtitle = element_text(size = 13,
-                                         colour = '#548135',
-                                         face = 'bold',
-                                         family = 'Arial',
-                                         hjust = 1.05,
-                                         vjust = 2))
+                                                  colour = '#548135',
+                                                  face = 'bold',
+                                                  family = 'Arial',
+                                                  hjust = 1.05,
+                                                  vjust = 2))
   }
 
   g <- ggplot2::ggplotGrob(p) # Convertir en gtable

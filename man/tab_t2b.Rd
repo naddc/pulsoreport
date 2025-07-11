@@ -11,7 +11,7 @@ tab_t2b(data = NULL, vars, labels_width = 30, unit_extra = FALSE)
 
 \item{vars}{Variable o variables para plotear.}
 
-\item{labels_width}{description}
+\item{labels_width}{Define ancho de etiquetas del eje en gráficos de barras no apiladas (30 por defecto).}
 
 \item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
 }

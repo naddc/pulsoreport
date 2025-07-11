@@ -16,6 +16,7 @@
 
 ggspider <- function(data,
                      labels_width = 30,
+                     show_axis_labels = TRUE,
                      area_fill = FALSE,
                      central_distance = 0,
                      axis_name_offset = 0.2,
@@ -60,9 +61,11 @@ ggspider <- function(data,
     dplyr::left_join(angle_df,
                      by = "parameter") %>%
     dplyr::mutate(
-      r = ((value - min_value) / (max_value - min_value)) + central_distance, # Proporción del valor sobre el máximo
-      x = r * cos(angle),                                                     # Coordenada X polar -> cartesiana
-      y = r * sin(angle)                                                      # Coordenada Y polar -> cartesiana
+      r = (value - min_value) / (max_value - min_value), # Proporción del valor sobre el máximo
+      x = (r + central_distance) * cos(angle),
+      y = (r + central_distance) * sin(angle),
+      # x = r * cos(angle),                                                     # Coordenada X polar -> cartesiana
+      # y = r * sin(angle)                                                      # Coordenada Y polar -> cartesiana
     )
 
   spider_coords_closed <- spider_coords %>%
@@ -79,15 +82,38 @@ ggspider <- function(data,
 
   circle_coords <- function(r) {
     tibble(
-      x = r * cos(angles),
-      y = r * sin(angles),
+      x = (r + central_distance) * cos(angles),
+      y = (r + central_distance) * sin(angles),
+      # x = r * cos(angles),
+      # y = r * sin(angles),
       r = r
     )
   }
 
   # Círculos de fondo: valores relativos a min_value y max_value
-  ticks <- seq(min_value, max_value, length.out = ticks + 1)
-  background_grid <- purrr::map_df((ticks - min_value) / (max_value - min_value) + central_distance, circle_coords)
+
+  # background_grid <- purrr::map_df(tick_rs, function(r) {
+  #   tibble(
+  #     x = (r + central_distance) * cos(angles),
+  #     y = (r + central_distance) * sin(angles),
+  #     r = r
+  #   )
+  # })
+
+  # background_grid <- purrr::map_df((ticks - min_value) / (max_value - min_value), circle_coords)
+  tick_values <- seq(min_value, max_value, length.out = ticks + 1)
+  tick_rs <- (tick_values - min_value) / (max_value - min_value)
+
+  background_grid <- purrr::map_df(seq_along(tick_rs), function(i) {
+    r <- tick_rs[i]
+    tibble(
+      x = r * cos(angles),
+      y = r * sin(angles),
+      r = r,
+      label = tick_values[i],
+      group = i
+    )
+  })
 
   # 5. Etiquetas de variables ==============
 
@@ -126,6 +152,17 @@ ggspider <- function(data,
     geom_point(data = spider_coords_closed,
                aes(x, y, group = group, color = group),
                size = 1) +
+
+    # Etiquetas numéricas de los ticks (eje de referencia)
+    {if (show_axis_labels) geom_text(data = background_grid %>%
+                                       dplyr::group_by(label) %>%
+                                       dplyr::summarise(
+                                         x = 0,
+                                         y = unique(r)[1],
+                                         label = unique(label)[1]),
+                                     aes(x, y, label = label),
+                                     size = 3,
+                                     color = "#808080")} +
 
     # Área rellena (opcional)
     {if (area_fill) geom_polygon(data = spider_coords_closed,

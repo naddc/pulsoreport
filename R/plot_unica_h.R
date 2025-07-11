@@ -40,8 +40,6 @@ plot_unica_h <- function(data = NULL,
                          ancho = 0.7,
                          show_notes = FALSE,
                          show_n = FALSE) {
-  output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
-
   # 1. Tabular y calcular Ns ------------------------------------------------
   if (!is.null(data)) {
     var_sym <- rlang::enquo(vars)
@@ -128,8 +126,8 @@ plot_unica_h <- function(data = NULL,
 
       # Calcular Ns
       n <- dataset %>%
-        dplyr::select(dplyr::all_of(var_name)) %>%
-        dplyr::mutate(dplyr::across(everything(), as.character)) %>%
+        select(all_of(var_name)) %>%
+        dplyr::mutate(across(everything(), as.character)) %>%
         filter(rowSums(!is.na(.) & . != '') > 0) %>%
         dplyr::summarise(total = dplyr::n()) %>%
         dplyr::pull(total)
@@ -216,7 +214,7 @@ plot_unica_h <- function(data = NULL,
                          aes(x = if (!rlang::quo_is_null(enquo(group))) {{group}} else {{ vars }},
                              y = prop,
                              fill = if (!rlang::quo_is_null(enquo(group))) {{ vars }} else NULL)) +
-      ggplot2::labs(title = if (output_type == "docx" || is.null(title)) NULL else stringr::str_wrap(title, width = 30)) +
+      ggplot2::labs(title = stringr::str_wrap(title, width = 30)) +
       ggplot2::theme_void() +
       ggplot2::theme(
         plot.title = element_text(size = 16,
@@ -461,6 +459,7 @@ plot_unica_h <- function(data = NULL,
       p_grob$widths[[which(p_grob$layout$name == "axis-l")]] <- ggplot2::unit(1, "cm")
       p <- ggpubr::as_ggplot(p_grob)
     }
+
     # Añadir leyenda
     # solución de @teunbrand
     get_legend <- function(plot, legend = NULL) {
@@ -517,8 +516,7 @@ plot_unica_h <- function(data = NULL,
     final_plot <- final_plot +
       patchwork::plot_annotation(
         theme = ggplot2::theme(
-          plot.margin = ggplot2::margin(t = if (output_type == "docx") 0 else 100,
-                                        b = -15))) &
+          plot.margin = ggplot2::margin(t = 100, b = -15))) &
       ggplot2::theme(
         plot.background = element_rect(fill = 'transparent', color = NA),
         panel.background = element_rect(fill = 'transparent', color = NA))
@@ -622,17 +620,5 @@ plot_unica_h <- function(data = NULL,
       plot.background = ggplot2::element_rect(fill = 'transparent', color = NA),
       panel.background = ggplot2::element_rect(fill = 'transparent', color = NA)
     )
-
-  if (output_type == "docx") {
-    return(list(
-      plot = p_fixed,
-      cap = if (!is.null(title) && is.character(title)) title else NULL,
-      N = paste0("N = ",
-                 if (exists("n_totales")) n_totales else if (exists("n_total")) n_total
-      )
-    ))
-  } else if (output_type == "pptx") {
-    return(p_fixed)
-  }
-
+  return(p_fixed)
 }

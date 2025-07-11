@@ -5,7 +5,7 @@
 #' @import stringr
 #' @param data Un data frame con los datos en formato sav.
 #' @param vars Variable o variables para plotear.
-#' @param labels_width description
+#' @param labels_width Define ancho de etiquetas del eje en gráficos de barras no apiladas (30 por defecto).
 #' @param unit_extra Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.
 #' @return Una tabla que puede ser exportada.
 #' @export
@@ -15,8 +15,12 @@ tab_t2b <- function(data = NULL,
                     labels_width = 30,
                     unit_extra = FALSE
 ) {
-  output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
-  if (is.null(output_type)) output_type <- "docx"
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
+  }
 
   # 1. Tabular ------------------------------------------------
 
@@ -80,11 +84,17 @@ tab_t2b <- function(data = NULL,
   }
 
   # Crear tabla tipo flextable ----
+  num_mat <- tab_final[, -1] %>%
+    mutate(across(everything(), ~ suppressWarnings(as.numeric(str_remove_all(., "%")))))
+
+  colormatrix <- ifelse(num_mat <= 75, "red", "black")
+
   tab_final <- tab_final %>%
     flextable::flextable() %>%
     flextable::set_header_labels(.default = names(tab_final)) %>%
     flextable::bold(part = "header") %>%
     flextable::color(color = "white", part = "header") %>%
+    flextable::color(j = 2:ncol(tab_final), color = colormatrix) %>%
     flextable::bg(bg = "#336699", part = "header") %>%
     flextable::align(align = "center", part = "all") %>%
     flextable::align(j = 1, align = "left", part = "all") %>%
@@ -93,10 +103,6 @@ tab_t2b <- function(data = NULL,
     flextable::border_inner(border = fp_border(color = "black", width = 0.75)) %>%
     flextable::fontsize(size = 7, part = "all") %>%
     flextable::autofit()
-
-    # flextable::set_header_df(data.frame(col_keys = names(tab_final),
-    #                          labels = names(tab_final)),
-    #               key = "col_keys") %>%
 
   if (output_type == "docx") {
 

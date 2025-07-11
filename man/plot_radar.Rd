@@ -8,6 +8,7 @@ plot_radar(
   data = NULL,
   vars,
   labels_width = 30,
+  show_axis_labels = FALSE,
   area_fill = FALSE,
   central_distance = 0,
   axis_name_offset = 0.2,

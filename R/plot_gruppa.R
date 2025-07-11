@@ -215,10 +215,10 @@ plot_gruppa <- function(vars,
           )
         }
         else {
-        arranged <- gridExtra::arrangeGrob(
-          text_label, aligned_plot,
-          ncol = 2,
-          widths = unit.c(unit(9, 'cm'), unit(20, 'cm'))
+          arranged <- gridExtra::arrangeGrob(
+            text_label, aligned_plot,
+            ncol = 2,
+            widths = unit.c(unit(9, 'cm'), unit(20, 'cm'))
           )
         }
         arranged <- gridExtra::arrangeGrob(arranged, ncol = 1)
@@ -599,15 +599,15 @@ plot_gruppa <- function(vars,
   for (nombre_data in names(vars)) {
     dataset <- get(nombre_data)  # Obtener el dataset por su nombre
     var_name <- vars[[nombre_data]]
-  ### Calcular Ns
-  n <- dataset %>%
-    select(all_of(var_name)) %>%
-    dplyr::mutate(across(everything(), as.character)) %>%
-    filter(rowSums(!is.na(.) & . != '') > 0) %>%
-    dplyr::summarise(total = dplyr::n()) %>%
-    dplyr::pull(total)
-  totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
-  n_totales_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
+    ### Calcular Ns
+    n <- dataset %>%
+      select(all_of(var_name)) %>%
+      dplyr::mutate(across(everything(), as.character)) %>%
+      filter(rowSums(!is.na(.) & . != '') > 0) %>%
+      dplyr::summarise(total = dplyr::n()) %>%
+      dplyr::pull(total)
+    totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
+    n_totales_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
   }
   if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
     n_totales_totales <- paste(n_totales_totales, params[['unit_extra']])

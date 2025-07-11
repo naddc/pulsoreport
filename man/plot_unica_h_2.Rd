@@ -11,11 +11,14 @@ plot_unica_h_2(
   order_freq = FALSE,
   group = NULL,
   display = "simple",
+  color_fill = "#336699",
   title = NULL,
   unit = NULL,
   unit_extra = TRUE,
   x_labels = TRUE,
   labels_width = 30,
+  title_width = 30,
+  item_width = 35,
   ancho = 0.8,
   show_notes = FALSE,
   show_n = FALSE
@@ -42,7 +45,11 @@ plot_unica_h_2(
 
 \item{x_labels}{Define si se mostrarán las etiquetas del eje x, pensando en un gráfico invertido (si TRUE). FALSE (opción por defecto) muestra las etiquetas de las categorías de las barras.}
 
-\item{ancho}{Define el ancho de las barras (0.6 por defecto).}
+\item{labels_width}{Define ancho de etiquetas del eje en gráficos de barras no apiladas (30 por defecto).}
+
+\item{title_width}{Define ancho de título en gráficos de barras no apiladas (30 por defecto).}
+
+\item{ancho}{Define el ancho de las barras (0.8 por defecto).}
 
 \item{show_notes}{Define si se mostrarán las notas de pie de "N" y el mensaje sobre el redondeo (si TRUE). FALSE por defecto.}
 
