@@ -24,8 +24,12 @@ plot_torta_2 <- function(data,
                          unit = TRUE,
                          unit_extra = TRUE,
                          show_n = FALSE) {
-  output_type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
-  if (is.null(output_type)) output_type <- "docx"  # o "docx", según lo que uses por defecto
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
+  }
 
   # ============== 1. Tabular ==============
   p <- data %>%

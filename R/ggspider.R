@@ -1,30 +1,15 @@
-#' Spider/radar chart con ggplot
-#'
-#' Genera un gráfico de tipo radar o araña con valores absolutos. A partir de https://towardsdatascience.com/how-to-make-a-spider-chart-in-r-using-ggplot2-85a4f1898cab/
-#' @import ggplot2
-#' @import stringr
-#' @param data Tabla para plotear. Primera columna `group` contiene nombres de las categorías de los grupos. Resto de columnas contienen los valores por cada variable.
-#' @param area_fill Define si rellenar el área del grupo (FALSE por defecto).
-#' @param central_distance Define distancia entre el centro y el origen del eje.
-#' @param axis_name_offset Define cuánto se alejan los nombres de las variables del borde.
-#' @param ticks Define cantidad de valores del eje a graficar.
-#' @param colores Define paleta de colores.
-#' @param min_value Define valor mínimo esperado para los ejes (si no se define, se calcula).
-#' @param max_value Define valor máximo esperado para los ejes (si no se define, se calcula).
-#' @return Un objeto ggplot que puede ser exportado como dml o png.
-#' @keywords internal
-
 ggspider <- function(data,
-                     labels_width = 30,
+                     labels_width = 25, # 30
                      show_axis_labels = TRUE,
                      area_fill = FALSE,
                      central_distance = 0,
                      axis_name_offset = 0.2,
-                     ticks = 4,
+                     ticks = 5,
                      colores = c("#002060", "#ED7D31",'#FFC000'),
-                     min_value = NULL,
-                     max_value = NULL
-                     ) {
+                     min_value = 0,
+                     max_value = NULL,
+                     output_type = 'pptx'
+) {
 
   # 1. Parámteros básicos ==================
 
@@ -84,34 +69,25 @@ ggspider <- function(data,
     tibble(
       x = (r + central_distance) * cos(angles),
       y = (r + central_distance) * sin(angles),
-      # x = r * cos(angles),
-      # y = r * sin(angles),
       r = r
     )
   }
 
   # Círculos de fondo: valores relativos a min_value y max_value
-
-  # background_grid <- purrr::map_df(tick_rs, function(r) {
-  #   tibble(
-  #     x = (r + central_distance) * cos(angles),
-  #     y = (r + central_distance) * sin(angles),
-  #     r = r
-  #   )
-  # })
-
-  # background_grid <- purrr::map_df((ticks - min_value) / (max_value - min_value), circle_coords)
   tick_values <- seq(min_value, max_value, length.out = ticks + 1)
   tick_rs <- (tick_values - min_value) / (max_value - min_value)
 
   background_grid <- purrr::map_df(seq_along(tick_rs), function(i) {
     r <- tick_rs[i]
+    x_vals <- r * cos(angles)
+    y_vals <- r * sin(angles)
+
     tibble(
-      x = r * cos(angles),
-      y = r * sin(angles),
+      x = c(x_vals, x_vals[1]),
+      y = c(y_vals, y_vals[1]),
       r = r,
       label = tick_values[i],
-      group = i
+      group = factor(i)
     )
   })
 
@@ -128,8 +104,8 @@ ggspider <- function(data,
 
       # Ajuste manual del eje x para centrar visualmente los textos
       x = dplyr::case_when(
-        cos(angle) >  0.15 ~ x + 0.6,  # hacia la derecha: desplazar más a la derecha
-        cos(angle) < -0.15 ~ x - 0.6,  # hacia la izquierda: desplazar más a la izquierda
+        cos(angle) >  0.15 ~ x + 0.4,  # 0.6 hacia la derecha: desplazar más a la derecha
+        cos(angle) < -0.15 ~ x - 0.4,  # 0.6 hacia la izquierda: desplazar más a la izquierda
         TRUE               ~ x          # arriba/abajo: sin ajuste
       )
     )
@@ -139,19 +115,18 @@ ggspider <- function(data,
   ggplot() +
 
     # Fondos circulares (líneas guía)
-    geom_polygon(data = background_grid, aes(x, y, group = r),
-                 fill = NA, color = "#D9D9D9", linewidth = 0.2) +
+    geom_path(data = background_grid, aes(x, y, group = group),
+              color = "#D9D9D9", linewidth = if (output_type == 'docx') 0.2 else 0.5) +
 
     # Líneas que conectan los puntos por grupo
     geom_path(data = spider_coords_closed,
               aes(x, y, group = group, color = group),
-              linewidth = 0.5) +
-
+              linewidth = if (output_type == 'docx') 0.5 else 1) +
 
     # Puntos en cada vértice
     geom_point(data = spider_coords_closed,
                aes(x, y, group = group, color = group),
-               size = 1) +
+               size = if (output_type == 'docx') 1 else 3) +
 
     # Etiquetas numéricas de los ticks (eje de referencia)
     {if (show_axis_labels) geom_text(data = background_grid %>%
@@ -161,7 +136,7 @@ ggspider <- function(data,
                                          y = unique(r)[1],
                                          label = unique(label)[1]),
                                      aes(x, y, label = label),
-                                     size = 3,
+                                     size = if (output_type == 'docx') 6 * 0.35 else 9 * 0.35,
                                      color = "#808080")} +
 
     # Área rellena (opcional)
@@ -176,7 +151,7 @@ ggspider <- function(data,
     # Nombres de los ejes (fuera del círculo)
     geom_text(data = axis_labels,
               aes(x, y, label = label_wrapped),
-              size = 9 * 0.35,
+              size = if (output_type == 'docx') 9 * 0.35 else 14 * 0.35,
               fontface = 'bold',
               family = 'Arial',
               color = '#002060') +
@@ -187,12 +162,13 @@ ggspider <- function(data,
     theme(
       legend.position = "bottom",
       legend.title = element_blank(),
-      legend.text = element_text(size = 7,
+      legend.text = element_text(size = if (output_type == 'docx') 7 else 12,
                                  family = 'Arial',
                                  color = '#002060'),
-      legend.margin = margin(t = 10),
-      legend.key.size = unit(0.5, "cm"),
-      legend.key.width = unit(0.5, "cm"),
+      legend.margin = margin(t = if (output_type == 'docx') 10 else 10),
+      # b = if (output_type == 'docx') 0 else -10),
+      legend.key.size = unit(if (output_type == 'docx') 0.5 else 1, "cm"),
+      legend.key.width = unit(if (output_type == 'docx') 0.5 else 1.5, "cm"),
       panel.background = element_rect(fill = "transparent", color = NA),
       plot.background = element_rect(fill = "transparent", color = NA)
     )

@@ -15,21 +15,26 @@
 
 plot_radar <- function(data = NULL,
                        vars,
-                       labels_width = 30,
+                       labels_width = 25,
                        show_axis_labels = FALSE,
                        area_fill = FALSE,
                        central_distance = 0,
                        axis_name_offset = 0.2,
-                       ticks = 4,
+                       ticks = 5,
                        colores = c("#002060", "#ED7D31",'#FFC000'),
-                       min_value = 60,
+                       min_value = 0,
                        max_value = 100,
                        title = NULL,
                        # unit = NULL,
-                       unit_extra = TRUE
+                       unit_extra = TRUE,
+                       output_type = 'pptx'
 ) {
-  output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
-  if (is.null(output_type)) output_type <- "docx"
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
+  }
 
   # 1. Tabular ------------------------------------------------
 
@@ -76,7 +81,8 @@ plot_radar <- function(data = NULL,
                 ticks = ticks,
                 colores = colores,
                 min_value = min_value,
-                max_value = max_value) +
+                max_value = max_value,
+                output_type = output_type) +
     theme(
       plot.margin =
         margin(t = 10))

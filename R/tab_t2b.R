@@ -54,15 +54,16 @@ tab_t2b <- function(data = NULL,
 
   # reorganizar grupo primero
   tab_final <- T2B_result %>%
-    dplyr::relocate(`Top Two Box`)
-
-  tab_final <- tab_final %>%
+    dplyr::relocate(`Top Two Box`) %>%
     t() %>%
     tibble::as_tibble(rownames = "Top Two Box") %>%
     janitor::row_to_names(row_number = 1) %>%
     mutate(across(-1, ~ paste0(.x, "%")),
-           across(1, ~ str_wrap(., 30))
+           across(1, ~ str_wrap(., 25))
     )
+
+  # Renombrar encabezado de la primera columna a mayúsculas
+  colnames(tab_final)[1] <- toupper(colnames(tab_final)[1])
 
   # Calcular Ns ---------
   totales <- list()
@@ -84,6 +85,7 @@ tab_t2b <- function(data = NULL,
   }
 
   # Crear tabla tipo flextable ----
+  if (output_type == 'docx') {
   num_mat <- tab_final[, -1] %>%
     mutate(across(everything(), ~ suppressWarnings(as.numeric(str_remove_all(., "%")))))
 
@@ -103,6 +105,28 @@ tab_t2b <- function(data = NULL,
     flextable::border_inner(border = fp_border(color = "black", width = 0.75)) %>%
     flextable::fontsize(size = 7, part = "all") %>%
     flextable::autofit()
+  }
+  else {
+    colnames(tab_final)[1] <- toupper(colnames(tab_final)[1])
+
+    tab_final <- tab_final %>%
+      flextable::flextable() %>%
+      flextable::set_header_labels(.default = names(tab_final)) %>%
+      flextable::bold(part = "header") %>%
+      flextable::bold(j = 1) %>%
+      flextable::color(color = "white", part = "header") %>%
+      flextable::bg(bg = "#002060", part = "header") %>%
+      flextable::color(color = "#002060", part = "body") %>%
+      flextable::align(align = "center", part = "all") %>%
+      flextable::align(j = 1, align = "left", part = "header") %>%
+      flextable::align(j = 1, align = "justify", part = "body") %>%
+      flextable::border_remove() %>%
+      flextable::border_outer(border = fp_border(color = "white", width = 1)) %>%
+      flextable::border_inner(border = fp_border(color = "white", width = 0.75)) %>%
+      flextable::fontsize(size = 11, part = "all") %>%
+      flextable::autofit() %>%
+      flextable::height_all(height = .6)
+  }
 
   if (output_type == "docx") {
 

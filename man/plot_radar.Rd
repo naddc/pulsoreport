@@ -7,17 +7,18 @@
 plot_radar(
   data = NULL,
   vars,
-  labels_width = 30,
+  labels_width = 25,
   show_axis_labels = FALSE,
   area_fill = FALSE,
   central_distance = 0,
   axis_name_offset = 0.2,
-  ticks = 4,
+  ticks = 5,
   colores = c("#002060", "#ED7D31", "#FFC000"),
-  min_value = 60,
+  min_value = 0,
   max_value = 100,
   title = NULL,
-  unit_extra = TRUE
+  unit_extra = TRUE,
+  output_type = "pptx"
 )
 }
 \arguments{

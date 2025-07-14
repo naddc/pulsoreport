@@ -21,8 +21,12 @@ plot_gruppa_2 <- function(data = NULL,
                           unit_extra = TRUE,
                           show_notes = TRUE,
                           x_labels = TRUE) {
-  output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
-  if (is.null(output_type)) output_type <- "pptx"
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
+  }
 
   get_legend <- function(plot, legend = NULL) {
     gt <- ggplot2::ggplotGrob(plot)
