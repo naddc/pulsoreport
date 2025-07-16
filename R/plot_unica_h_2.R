@@ -296,7 +296,7 @@ plot_unica_h_2 <- function(data = NULL,
           plot.margin = margin(t = 5, b = 5)
         )
 
-      if (isTRUE(x_labels)) {
+      if (x_labels) {
         p <- p +
           ggplot2::theme(
             axis.text.y = element_text(size = if (output_type == "docx") 9 else 12,
@@ -326,7 +326,8 @@ plot_unica_h_2 <- function(data = NULL,
       if (isTRUE(x_labels)) {
         label_df <- tab_final %>%
           dplyr::select(label = {{ var_name }}) %>%
-          dplyr::distinct()
+          dplyr::distinct() %>%
+          dplyr::mutate(label = forcats::fct_drop(label)) # nuevo
 
         y_label_plot <- ggplot(label_df, aes(x = 1, y = label)) +
           geom_text(aes(label = stringr::str_wrap(label, width = labels_width)),
