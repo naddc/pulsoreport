@@ -4,7 +4,13 @@
 \alias{tab_t2b}
 \title{Tabla para respuestas de Top Two Box}
 \usage{
-tab_t2b(data = NULL, vars, labels_width = 30, unit_extra = FALSE)
+tab_t2b(
+  data = NULL,
+  vars,
+  labels_width = 30,
+  unit_extra = FALSE,
+  show_notes = TRUE
+)
 }
 \arguments{
 \item{data}{Un data frame con los datos en formato sav.}
@@ -14,6 +20,8 @@ tab_t2b(data = NULL, vars, labels_width = 30, unit_extra = FALSE)
 \item{labels_width}{Define ancho de etiquetas del eje en gráficos de barras no apiladas (30 por defecto).}
 
 \item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
+
+\item{show_notes}{Falta descripción.}
 }
 \value{
 Una tabla que puede ser exportada.

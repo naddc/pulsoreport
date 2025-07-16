@@ -27,7 +27,7 @@ plot_radar <- function(data = NULL,
                        title = NULL,
                        # unit = NULL,
                        unit_extra = TRUE,
-                       output_type = 'pptx'
+                       show_notes = TRUE
 ) {
   output <- rmarkdown::metadata$output
   output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
@@ -109,31 +109,47 @@ plot_radar <- function(data = NULL,
   if (output_type == "docx") {
 
     # Calcular Ns ---------
-    totales <- list()
-    for (nombre_data in names(vars)) {
-      dataset <- get(nombre_data)  # Obtener el dataset por su nombre
-      var_name <- vars[[nombre_data]]
-      ### Calcular Ns
-      n <- dataset %>%
-        dplyr::select(dplyr::all_of(var_name)) %>%
-        dplyr::mutate(dplyr::across(everything(), as.character)) %>%
-        dplyr::filter(rowSums(!is.na(.) & . != '') > 0) %>%
-        dplyr::summarise(total = dplyr::n()) %>%
-        dplyr::pull(total)
-      totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
-      n_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
-    }
-    if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
-      n_totales_totales <- paste(n_totales, params[['unit_extra']])
+    if (show_notes) {
+      if (!is.null(data)) {
+        footer <- show_notes(
+          data = data,
+          vars = var_name,
+          output_type = output_type
+        )
+      } else if (is.null(data) && is.list(vars)) {
+        footer <- show_notes(
+          data = vars,
+          output_type = output_type
+        )
+      }
     }
 
-    return(list(
-      plot = p,
-      cap = if (!is.null(title) && is.character(title)) title else NULL,
-      N = paste0("N = ",
-                 if (exists("n_totales")) n_totales else NULL),
-      height = 4.5
-    )
+    # totales <- list()
+    # for (nombre_data in names(vars)) {
+    #   dataset <- get(nombre_data)  # Obtener el dataset por su nombre
+    #   var_name <- vars[[nombre_data]]
+    #   ### Calcular Ns
+    #   n <- dataset %>%
+    #     dplyr::select(dplyr::all_of(var_name)) %>%
+    #     dplyr::mutate(dplyr::across(everything(), as.character)) %>%
+    #     dplyr::filter(rowSums(!is.na(.) & . != '') > 0) %>%
+    #     dplyr::summarise(total = dplyr::n()) %>%
+    #     dplyr::pull(total)
+    #   totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
+    #   n_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
+    # }
+    # if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
+    #   n_totales_totales <- paste(n_totales, params[['unit_extra']])
+    # }
+    #
+    return(
+      list(
+        plot = p,
+        cap = if (!is.null(title) && is.character(title)) title else NULL,
+        N = paste0("N = ", footer),
+        # if (exists("n_totales")) n_totales else NULL
+        height = 4.5
+      )
     )
   } else if (output_type == "pptx") {
     return(p)

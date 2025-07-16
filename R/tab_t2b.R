@@ -7,13 +7,15 @@
 #' @param vars Variable o variables para plotear.
 #' @param labels_width Define ancho de etiquetas del eje en gráficos de barras no apiladas (30 por defecto).
 #' @param unit_extra Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.
+#' @param show_notes Falta descripción.
 #' @return Una tabla que puede ser exportada.
 #' @export
 
 tab_t2b <- function(data = NULL,
                     vars,
                     labels_width = 30,
-                    unit_extra = FALSE
+                    unit_extra = FALSE,
+                    show_notes = TRUE
 ) {
   output <- rmarkdown::metadata$output
   output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
@@ -66,45 +68,62 @@ tab_t2b <- function(data = NULL,
   colnames(tab_final)[1] <- toupper(colnames(tab_final)[1])
 
   # Calcular Ns ---------
-  totales <- list()
-  for (nombre_data in names(vars)) {
-    dataset <- get(nombre_data)  # Obtener el dataset por su nombre
-    var_name <- vars[[nombre_data]]
-    ### Calcular Ns
-    n <- dataset %>%
-      dplyr::select(dplyr::all_of(var_name)) %>%
-      dplyr::mutate(dplyr::across(everything(), as.character)) %>%
-      dplyr::filter(rowSums(!is.na(.) & . != '') > 0) %>%
-      dplyr::summarise(total = dplyr::n()) %>%
-      dplyr::pull(total)
-    totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
-    n_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
+  if (output_type == "docx") {
+
+    if (show_notes) {
+      if (!is.null(data)) {
+        footer <- show_notes(
+          data = data,
+          vars = var_name,
+          output_type = output_type
+        )
+      } else if (is.null(data) && is.list(vars)) {
+        footer <- show_notes(
+          data = vars,
+          output_type = output_type
+        )
+      }
+    }
   }
-  if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
-    n_totales <- paste(n_totales, params[['unit_extra']])
-  }
+  # totales <- list()
+  # for (nombre_data in names(vars)) {
+  #   dataset <- get(nombre_data)  # Obtener el dataset por su nombre
+  #   var_name <- vars[[nombre_data]]
+  #   ### Calcular Ns
+  #   n <- dataset %>%
+  #     dplyr::select(dplyr::all_of(var_name)) %>%
+  #     dplyr::mutate(dplyr::across(everything(), as.character)) %>%
+  #     dplyr::filter(rowSums(!is.na(.) & . != '') > 0) %>%
+  #     dplyr::summarise(total = dplyr::n()) %>%
+  #     dplyr::pull(total)
+  #   totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
+  #   n_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
+  # }
+  # if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
+  #   n_totales <- paste(n_totales, params[['unit_extra']])
+  # }
 
   # Crear tabla tipo flextable ----
   if (output_type == 'docx') {
-  num_mat <- tab_final[, -1] %>%
-    mutate(across(everything(), ~ suppressWarnings(as.numeric(str_remove_all(., "%")))))
+    num_mat <- tab_final[, -1] %>%
+      mutate(across(everything(), ~ suppressWarnings(as.numeric(str_remove_all(., "%")))))
 
-  colormatrix <- ifelse(num_mat <= 75, "red", "black")
+    colormatrix <- ifelse(num_mat <= 75, "red", "black")
 
-  tab_final <- tab_final %>%
-    flextable::flextable() %>%
-    flextable::set_header_labels(.default = names(tab_final)) %>%
-    flextable::bold(part = "header") %>%
-    flextable::color(color = "white", part = "header") %>%
-    flextable::color(j = 2:ncol(tab_final), color = colormatrix) %>%
-    flextable::bg(bg = "#336699", part = "header") %>%
-    flextable::align(align = "center", part = "all") %>%
-    flextable::align(j = 1, align = "left", part = "all") %>%
-    flextable::border_remove() %>%
-    flextable::border_outer(border = fp_border(color = "black", width = 1)) %>%
-    flextable::border_inner(border = fp_border(color = "black", width = 0.75)) %>%
-    flextable::fontsize(size = 7, part = "all") %>%
-    flextable::autofit()
+    tab_final <- tab_final %>%
+      flextable::flextable() %>%
+      flextable::set_header_labels(.default = names(tab_final)) %>%
+      flextable::bold(part = "header") %>%
+      flextable::color(color = "white", part = "header") %>%
+      flextable::color(j = 2:ncol(tab_final), color = colormatrix) %>%
+      flextable::bg(bg = "#336699", part = "header") %>%
+      flextable::align(align = "center", part = "all") %>%
+      flextable::align(j = 1, align = "left", part = "all") %>%
+      flextable::border_remove() %>%
+      flextable::border_outer(border = fp_border(color = "black", width = 1)) %>%
+      flextable::border_inner(border = fp_border(color = "black", width = 0.75)) %>%
+      flextable::fontsize(size = 7, part = "all") %>%
+      flextable::autofit()
   }
   else {
     colnames(tab_final)[1] <- toupper(colnames(tab_final)[1])
@@ -136,7 +155,7 @@ tab_t2b <- function(data = NULL,
       '\n\n```{=openxml}\n',
       '<w:p>\n',
       '  <w:pPr><w:pStyle w:val="Footnote"/></w:pPr>\n',
-      '  <w:r><w:t>', htmltools::htmlEscape(paste0('N = ', n_totales, ". Fuente: PULSO PUCP 2025.")), '</w:t></w:r>\n',
+      '  <w:r><w:t>', htmltools::htmlEscape(paste0('N = ', footer, ". Fuente: PULSO PUCP 2025.")), '</w:t></w:r>\n',
       '</w:p>\n',
       '```\n\n'
     ))

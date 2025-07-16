@@ -18,7 +18,7 @@ plot_radar(
   max_value = 100,
   title = NULL,
   unit_extra = TRUE,
-  output_type = "pptx"
+  show_notes = TRUE
 )
 }
 \arguments{
@@ -30,9 +30,9 @@ plot_radar(
 
 \item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
 
-\item{unit}{Unidad de observación para declarar el N de la base usada para el gráfico. Si es NULL (opción por defecto), toma el parámeto correspondiente al dataset en data ("data_unit") indicado en los params del yaml. Puede recibir un elemento directamente (no recomendado).}
-
 \item{show_notes}{Define si se mostrarán las notas de pie de "N" y el mensaje sobre el redondeo (si TRUE). FALSE por defecto.}
+
+\item{unit}{Unidad de observación para declarar el N de la base usada para el gráfico. Si es NULL (opción por defecto), toma el parámeto correspondiente al dataset en data ("data_unit") indicado en los params del yaml. Puede recibir un elemento directamente (no recomendado).}
 
 \item{show_n}{Define si se mostrará el N como subtítulo (si TRUE). FALSE por defecto.}
 }

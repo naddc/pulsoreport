@@ -50,7 +50,7 @@ plot_unica_h_2 <- function(data = NULL,
   output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
     "pptx"
   } else {
-    "pptx"
+    "docx"
   }
 
   # ====== 1. Tabular y calcular Ns ========

@@ -11,17 +11,29 @@ plot_gruppa_2(
   T2B = TRUE,
   title = NULL,
   unit_extra = TRUE,
-  show_n = TRUE,
+  show_n = FALSE,
   show_notes = TRUE,
   x_labels = TRUE
 )
 }
 \arguments{
+\item{data}{Falta descripción.}
+
 \item{vars}{Variable(s) para plotear.}
+
+\item{ancho}{Falta descripción.}
 
 \item{T2B}{Define si se calcula e incluye en el gráfico el "Top 2 Box" (TRUE por defecto).}
 
+\item{title}{Falta descripción.}
+
 \item{unit_extra}{Define si añade una descripción adicional a la unidad de observación en la nota sobre el N de la base (TRUE por defecto). Requiere añadir el texto adicional desde params.}
+
+\item{show_n}{Falta descripción.}
+
+\item{show_notes}{Falta descripción.}
+
+\item{x_labels}{Falta descripción.}
 }
 \value{
 Un objeto ggplot que puede ser exportado como dml.
