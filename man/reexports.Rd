@@ -13,6 +13,7 @@
 \alias{group_by}
 \alias{select}
 \alias{pull}
+\alias{c_across}
 \alias{fp_border}
 \alias{ph_location}
 \title{Objects exported from other packages}
@@ -22,7 +23,7 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{dplyr}{\code{\link[dplyr]{filter}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr:context]{n}}, \code{\link[dplyr]{pull}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
+  \item{dplyr}{\code{\link[dplyr]{c_across}}, \code{\link[dplyr]{filter}}, \code{\link[dplyr]{group_by}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr:context]{n}}, \code{\link[dplyr]{pull}}, \code{\link[dplyr]{select}}, \code{\link[dplyr]{summarise}}}
 
   \item{magrittr}{\code{\link[magrittr:pipe]{\%>\%}}}
 

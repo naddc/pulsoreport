@@ -35,6 +35,17 @@ get_n <- function(data,
           break
         }
       }
+    #
+    #   # Si no hay pipe, intenta capturar nombre del argumento data
+    #   if (is.null(found_name)) {
+    #     if (rlang::is_symbol(substitute(data))) {
+    #       found_name <- rlang::as_label(substitute(data))
+    #     } else {
+    #       found_name <- "data"
+    #     }
+    #   }
+    #
+    #   found_name
 
       if (!is.null(found_name)) {
         found_name
@@ -47,6 +58,7 @@ get_n <- function(data,
           sub_name
         }
       }
+
     }, error = function(e) {
       "data"
     })

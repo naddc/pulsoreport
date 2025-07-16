@@ -40,6 +40,13 @@ plot_unica_h <- function(data = NULL,
                          ancho = 0.7,
                          show_notes = FALSE,
                          show_n = FALSE) {
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
+  }
+
   # 1. Tabular y calcular Ns ------------------------------------------------
   if (!is.null(data)) {
     var_sym <- rlang::enquo(vars)
@@ -342,7 +349,28 @@ plot_unica_h <- function(data = NULL,
                                          color = '#002060')
             )
         }
+
+        if (isTRUE(show_n)) {
+          n_labels <- df_ctrl %>%
+            group_by(group) %>%
+            mutate(
+              y_pos = 7
+            )
+          p <- p +
+            ggplot2::geom_text(
+              data = n_labels,
+              ggplot2::aes(label = paste0('N = ', N_group), x = group, y = y_pos),
+              hjust = 0,
+              vjust = -3.5,
+              size = 3.5,
+              family = 'Arial',
+              fontface = 'italic',
+              color = '#002060',
+              inherit.aes = FALSE)
+        }
+
         p
+
       })
 
       # Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
@@ -460,31 +488,6 @@ plot_unica_h <- function(data = NULL,
       p <- ggpubr::as_ggplot(p_grob)
     }
 
-    # Añadir leyenda
-    # solución de @teunbrand
-    get_legend <- function(plot, legend = NULL) {
-
-      gt <- ggplot2::ggplotGrob(plot)
-
-      pattern <- 'guide-box'
-      if (!is.null(legend)) {
-        pattern <- paste0(pattern, '-', legend)
-      }
-
-      indices <- grep(pattern, gt$layout$name)
-
-      not_empty <- !vapply(
-        gt$grobs[indices],
-        inherits, what = 'zeroGrob',
-        FUN.VALUE = logical(1)
-      )
-      indices <- indices[not_empty]
-
-      if (length(indices) > 0) {
-        return(gt$grobs[[indices[1]]])
-      }
-      return(NULL)
-    }
     # Plot dummy para extraer leyenda
     legend_plot <- ggplot2::ggplot(tab_final, ggplot2::aes(x = group, y = Freq, fill = Var1)) +
       ggplot2::geom_col(position = 'stack') +
@@ -527,74 +530,22 @@ plot_unica_h <- function(data = NULL,
   }
 
   # 3. Añadir notal al pie --------------------------------------------------
-  if(isTRUE(show_notes)) {
-    nombre_data <- if (deparse(substitute(data)) == ".") {
-      deparse(sys.call(-1)[[2]])
-    } else {
-      deparse(substitute(data))  # Si no está en un pipe, captura normal
-    }
 
-    if (is.null(unit) && !is.null(data)) {
-      unit <- if (paste0(nombre_data, "_unit") %in% names(params)) {
-        params[[paste0(nombre_data, "_unit")]]
-      }
-      else if (!is.null(unit) && !is.null(data)) {
-        unit
-      }
-      else {
-        'participantes'
-      }
-    }
+  if (output_type == "docx") {
+    show_notes <- FALSE
+  }
 
-    if (isTRUE(unit_extra) && !is.null(params[['unit_extra']])) {
-      if (exists('n_totales') && is.null(data)) {
-        n_totales <- paste(n_totales, params[['unit_extra']])
-      }
-      if (!is.null(unit)) {
-        unit <- paste(unit, params[['unit_extra']])
-      }
-    }
-
-    # Texto izquierdo (con lineheight)
-    footer_izq <- ggplot2::ggplot() +
-      ggplot2::geom_text(
-        ggplot2::aes(x = -0.06, y = 0, label = stringr::str_wrap(paste("Base:",
-                                                                       if (exists("n_totales")) n_totales else "",
-                                                                       if (exists("n_total")) n_total else "",
-                                                                       if (exists("unit")) unit else ""),
-                                                                 width = 67)),
-        hjust = 0, family = "Arial", size = 3.5, fontface = "bold",
-        color = "#002060", lineheight = 0.85
-      ) +
-      ggplot2::coord_cartesian(xlim = c(0, 1), clip = "off") +
-      ggplot2::theme_void() +
-      ggplot2::theme(
-        plot.margin = ggplot2::margin(t = 0, r = 0, b = 12, l = -1)
+  if (show_notes) {
+    if (!is.null(data)) {
+      footer_plot_wrapped <- show_notes(
+        data = data,
+        vars = vars
       )
-
-    # Texto derecho (con lineheight)
-    footer_der <- ggplot2::ggplot() +
-      ggplot2::geom_text(
-        ggplot2::aes(x = 1.05, y = 0, label = "Los porcentajes están redondeados y pueden no sumar 100%"),
-        hjust = 1, family = "Arial", size = 3.5, fontface = "bold",
-        color = "#002060", lineheight = 0.85
-      ) +
-      ggplot2::coord_cartesian(xlim = c(0, 1), clip = "off") +
-      ggplot2::theme_void() +
-      ggplot2::theme(
-        plot.margin = ggplot2::margin(t = 0, r = -1, b = 12, l = 0)
+    } else if (is.null(data) && is.list(vars)) {
+      footer_plot_wrapped <- show_notes(
+        data = vars
       )
-
-    # Footer en dos columnas usando patchwork
-    footer_plot <- (footer_izq + footer_der) +
-      patchwork::plot_layout(widths = c(5, 10)) &
-      ggplot2::theme(
-        plot.background = element_rect(fill = 'transparent', color = NA),
-        panel.background = element_rect(fill = 'transparent', color = NA))
-    footer_plot_wrapped <- patchwork::wrap_elements(panel = footer_plot) &
-      theme(
-        plot.background = element_rect(fill = 'transparent', color = NA),
-        panel.background = element_rect(fill = 'transparent', color = NA))
+    }
 
     final_plot <- (final_plot) / (footer_plot_wrapped) +
       patchwork::plot_layout(heights = c(15, 1)) +

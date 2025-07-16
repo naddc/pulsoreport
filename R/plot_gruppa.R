@@ -18,25 +18,15 @@ plot_gruppa <- function(vars,
                         T2B = TRUE,
                         unit_extra = TRUE,
                         show_notes = TRUE,
+                        show_n = FALSE,
                         x_labels = TRUE) {
-
-  get_legend <- function(plot, legend = NULL) {
-    gt <- ggplot2::ggplotGrob(plot)
-    pattern <- 'guide-box'
-    if (!is.null(legend)) {
-      pattern <- paste0(pattern, '-', legend)
-    }
-    indices <- grep(pattern, gt$layout$name)
-    not_empty <- !vapply(
-      gt$grobs[indices],
-      inherits, what = 'zeroGrob',
-      FUN.VALUE = logical(1))
-    indices <- indices[not_empty]
-    if (length(indices) > 0) {
-      return(gt$grobs[[indices[1]]])
-    }
-    return(NULL)
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
   }
+
   # 0. Clasificar las variables por tipo (dicotómica o escalar) ----
   clasificacion_vars <- vars %>%
     purrr::imap(function(var_list, publico) {
@@ -192,6 +182,26 @@ plot_gruppa <- function(vars,
                                          color = '#002060')
             )
         }
+        if (isTRUE(show_n)) {
+          n_labels <- df_ctrl %>%
+            group_by(group) %>%
+            mutate(
+              y_pos = 7
+            )
+          p <- p +
+            ggplot2::geom_text(
+              data = n_labels,
+              ggplot2::aes(label = paste0('N = ', N_group), x = group, y = y_pos),
+              hjust = 0,
+              vjust = -3,
+              size = 3.5,
+              family = 'Arial',
+              fontface = 'italic',
+              color = '#002060',
+              inherit.aes = FALSE)
+        }
+
+        # p <- ggplotGrob(p)
         p
       })
       ### Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
@@ -290,21 +300,32 @@ plot_gruppa <- function(vars,
     ## Tabular y calcular Ns ----
     tablas <- list()
     etiquetas <- list()
+    n_barras <- list()
     totales <- list()
     colores <- c()
+
     if (isTRUE(T2B)) {
       T2B_df <- tibble(Top2B = character(), group = character())
     }
+
     for (nombre_data in names(vars_escalares)) {
+
       dataset <- get(nombre_data)  # Obtener el dataset por su nombre
+
       var_name <- vars_escalares[[nombre_data]]  # Obtener el nombre de la variable dentro del dataset
+
       for (var_name in vars_escalares[[nombre_data]]) {  # Iterar sobre todas las variables en el dataset
-        if (!var_name %in% names(dataset)) next  # Saltar si la variable no está en el dataset
+
+          if (!var_name %in% names(dataset)) next  # Saltar si la variable no está en el dataset
+
         etiqueta <- attributes(dataset[[var_name]])$label  # Obtener la etiqueta de la variable
+
         #### Crear tabla de proporciones
         tab <- as.data.frame(prop.table(table(sjlabelled::as_label(dataset[[var_name]]))) * 100)
+
         ### Obtener niveles de la variable si tiene etiquetas
         levels <- names(attr(dataset[[var_name]], 'labels'))
+
         ### Construir tabla con la etiqueta y los niveles ordenados
         tab <- tab %>%
           dplyr::mutate(control = etiqueta,
@@ -315,9 +336,11 @@ plot_gruppa <- function(vars,
                         },
                         Var1 = factor(Var1, levels = levels)) %>%
           dplyr::arrange(Var1)
+
         ### Guardar en la lista con identificador único
         tablas[[paste(nombre_data, var_name, sep = '_')]] <- tab
         etiquetas[[paste(nombre_data, var_name, sep = '_')]] <- etiqueta
+
         ### Calcular Top2Box
         if (isTRUE(T2B)) {
           T2B_calc <- dataset %>%
@@ -332,6 +355,7 @@ plot_gruppa <- function(vars,
                                        group = str_replace(params[[paste0(nombre_data, '_unit')]],'^\\w{1}', toupper)))
         }
       }
+
       ### Calcular Ns
       n <- dataset %>%
         select(all_of(var_name)) %>%
@@ -339,11 +363,33 @@ plot_gruppa <- function(vars,
         filter(rowSums(!is.na(.) & . != '') > 0) %>%
         dplyr::summarise(total = dplyr::n()) %>%
         dplyr::pull(total)
+
       totales[[params[[paste0(nombre_data, '_unit')]]]] <- n
+
+      n_barras[[paste(nombre_data, var_name, sep = '_')]] <- n
+
     }
+
+    n_df <- tibble::tibble(
+      group = unlist(lapply(names(n_barras), function(x) {
+        nombre_data <- strsplit(x, "_")[[1]][1]
+        if (paste0(nombre_data, '_unit') %in% names(params)) {
+          stringr::str_replace(params[[paste0(nombre_data, '_unit')]], '^\\w{1}', toupper)
+        } else {
+          'Participantes'
+        }
+      })),
+      N_group = unname(unlist(n_barras))
+    )
+
     tab_final <- do.call(rbind, tablas) %>%
       filter(Freq != 0)
+
+    tab_final <- tab_final %>%
+      dplyr::left_join(n_df, by = 'group')
+
     n_totales <- paste(totales, names(totales), sep = ' ', collapse = ', ')
+
     ### Crear un vector de colores basado en los levels presentes en los datos
     nivel_actual <- levels(tab_final$Var1)
     if (length(nivel_actual) > 2) {
@@ -436,6 +482,25 @@ plot_gruppa <- function(vars,
                                          color = '#002060')
             )
         }
+        if (isTRUE(show_n)) {
+          n_labels <- df_ctrl %>%
+            group_by(group) %>%
+            mutate(
+              y_pos = 7
+            )
+          p <- p +
+            ggplot2::geom_text(
+              data = n_labels,
+              ggplot2::aes(label = paste0('N = ', N_group), x = group, y = y_pos),
+              hjust = 0,
+              vjust = -3,
+              size = 3.5,
+              family = 'Arial',
+              fontface = 'italic',
+              color = '#002060',
+              inherit.aes = FALSE)
+        }
+        # p <- ggplotGrob(p)
         p
       })
       ### Alinear los gráficos entre sí en eje vertical, compartiendo eje Y (izquierda)
@@ -642,37 +707,18 @@ plot_gruppa <- function(vars,
     ggplot2::theme(
       plot.background = element_rect(fill = 'transparent', color = NA),
       panel.background = element_rect(fill = 'transparent', color = NA))
-  if (isTRUE(show_notes)) {
-    ## Texto izquierdo (con lineheight) ----
-    footer_izq <- ggplot() +
-      geom_text(
-        aes(x = -0.06, y = 0, label = str_wrap(paste("Base:", n_totales_totales), width = 67)),
-        hjust = 0, family = "Arial", size = 3.5, fontface = "bold",
-        color = "#002060", lineheight = 0.85) +
-      coord_cartesian(xlim = c(0, 1), clip = "off") +
-      ggplot2::theme_void() +
-      theme(
-        plot.margin = margin(t = 0, r = 0, b = 12, l = -1))
-    ## Texto derecho (con lineheight) ----
-    footer_der <- ggplot() +
-      geom_text(
-        aes(x = 1.05, y = 0, label = "Los porcentajes están redondeados y pueden no sumar 100%"),
-        hjust = 1, family = "Arial", size = 3.5, fontface = "bold",
-        color = "#002060", lineheight = 0.85) +
-      coord_cartesian(xlim = c(0, 1), clip = "off") +
-      ggplot2::theme_void() +
-      theme(
-        plot.margin = margin(t = 0, r = -1, b = 12, l = 0))
-    ## Footer en dos columnas usando patchwork ----
-    footer_plot <- (footer_izq + footer_der) +
-      patchwork::plot_layout(widths = c(5, 10)) &
-      ggplot2::theme(
-        plot.background = element_rect(fill = 'transparent', color = NA),
-        panel.background = element_rect(fill = 'transparent', color = NA))
-    footer_plot_wrapped <- patchwork::wrap_elements(panel = footer_plot) &
-      theme(
-        plot.background = element_rect(fill = 'transparent', color = NA),
-        panel.background = element_rect(fill = 'transparent', color = NA))
+
+  if (output_type == "docx") {
+    show_notes <- FALSE
+  }
+
+  if (show_notes) {
+    if (is.list(vars)) {
+      footer_plot_wrapped <- show_notes(
+        data = vars
+      )
+    }
+
     p_fixed <- (final_plot) / (footer_plot_wrapped) +
       patchwork::plot_layout(heights = c(15, 1)) +
       patchwork::plot_annotation(

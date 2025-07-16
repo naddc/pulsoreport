@@ -20,7 +20,7 @@ plot_unica_h_2(
   title_width = 30,
   item_width = 35,
   ancho = 0.8,
-  show_notes = FALSE,
+  show_notes = TRUE,
   show_n = FALSE
 )
 }

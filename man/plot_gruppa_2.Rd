@@ -11,6 +11,7 @@ plot_gruppa_2(
   T2B = TRUE,
   title = NULL,
   unit_extra = TRUE,
+  show_n = TRUE,
   show_notes = TRUE,
   x_labels = TRUE
 )

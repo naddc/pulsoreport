@@ -9,6 +9,8 @@ plot_escala(
   vars,
   levels = NULL,
   T2B = TRUE,
+  show_notes = TRUE,
+  show_n = TRUE,
   unit = NULL,
   unit_extra = TRUE
 )

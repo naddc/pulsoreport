@@ -16,8 +16,17 @@ plot_escala <- function(data,
                         vars,
                         levels = NULL,
                         T2B = TRUE,
+                        show_notes = TRUE,
+                        show_n = TRUE,
                         unit = NULL,
-                        unit_extra = TRUE) {
+                        unit_extra = TRUE
+                        ) {
+  output <- rmarkdown::metadata$output
+  output_type <- if (!is.null(output) && any(grepl("pptx", as.character(output)))) {
+    "pptx"
+  } else {
+    "docx"
+  }
 
   # 1. CREACIÓN DE TABLA ----
   tablas <- list() # Crear lista para almacenar tablas y etiquetas
@@ -40,10 +49,19 @@ plot_escala <- function(data,
       nivel_actual = levels
     }
 
+    ### Calcular Ns
+    n <- data %>%
+      select(all_of(var)) %>%
+      dplyr::mutate(across(everything(), as.character)) %>%
+      filter(rowSums(!is.na(.) & . != '') > 0) %>%
+      dplyr::summarise(total = dplyr::n()) %>%
+      dplyr::pull(total)
+
     tab <- tab %>%
       dplyr::mutate(control = etiqueta,
                     Var1 = factor(Var1,
-                                  levels = nivel_actual)) %>%
+                                  levels = nivel_actual),
+                    n_barras = n) %>%
       dplyr::arrange(Var1)
 
     tablas[[var]] <- tab # Almacenar la tabla y la etiqueta en la lista
@@ -158,11 +176,23 @@ plot_escala <- function(data,
       plot.margin = margin(l = 20, r = 30, t = 100, b = 0),
       panel.background = element_rect(fill = 'transparent', colour = NA),
       plot.background = element_rect(fill = 'transparent', colour = NA)) +
+    {if (show_n) geom_text(
+      data = tab,
+      aes(label = paste0("N=", n_barras), x = control, y = 0),
+      hjust = 2,
+      vjust = -5,
+      size = 3.5,
+      family = 'Arial',
+      fontface = 'italic',
+      color = '#002060',
+      inherit.aes = FALSE
+    )} +
     ggplot2::scale_y_reverse() +
     ggplot2::scale_fill_manual(values = colores) +
-    ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 55)) +
-    ggplot2::labs(caption = c(str_wrap(paste('Base:', n_total, unit), width = 80),
-                              'Los porcentajes están redondeados y pueden no sumar 100%'))
+    ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 55))
+  # +
+  #   ggplot2::labs(caption = c(str_wrap(paste('Base:', n_total, unit), width = 80),
+  #                             'Los porcentajes están redondeados y pueden no sumar 100%'))
   if (isTRUE(T2B)) {
     # # Obtener los límites del eje Y
     # g <- ggplot2::ggplot_build(p)
@@ -191,6 +221,28 @@ plot_escala <- function(data,
 
   g <- ggplot2::ggplotGrob(p) # Convertir en gtable
   g$widths[6] <- unit(10, 'cm')  # Fijar el espacio del eje Y
-  p_fixed <- ggpubr::as_ggplot(g)  # Convierte de nuevo en un objeto ggplot2
+  final_plot <- ggpubr::as_ggplot(g)  # Convierte de nuevo en un objeto ggplot2
+
+  if (output_type == "docx") {
+    show_notes <- FALSE
+  }
+
+  if (show_notes) {
+    footer_plot_wrapped <- show_notes(
+      data = data,
+      vars = vars
+    )
+
+    p_fixed <- (final_plot) / (footer_plot_wrapped) +
+      patchwork::plot_layout(heights = c(15, 1)) +
+      patchwork::plot_annotation(
+        theme = ggplot2::theme(plot.margin = ggplot2::margin(b = -18))) &
+      ggplot2::theme(
+        plot.background = element_rect(fill = 'transparent', color = NA),
+        panel.background = element_rect(fill = 'transparent', color = NA))
+  } else {
+    p_fixed <- final_plot
+  }
+
   return(p_fixed)
 }
